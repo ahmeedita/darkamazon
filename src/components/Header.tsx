@@ -20,8 +20,8 @@ export function Header({ user, onLogin, onLogout }: HeaderProps) {
             <div className="flex items-center space-x-2">
               <Crown className="w-8 h-8 text-primary" />
               <div>
-                <h1 className="font-display text-2xl font-bold text-primary">
-                  ChopCityzCC
+              <h1 className="font-display text-2xl font-bold text-primary">
+                  DARK AMAZON
                 </h1>
                 <p className="text-xs text-muted-foreground">Premium Marketplace</p>
               </div>

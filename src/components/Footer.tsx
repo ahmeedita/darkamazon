@@ -18,7 +18,7 @@ export function Footer() {
               <Crown className="w-8 h-8 text-primary" />
               <div>
                 <h3 className="font-display text-2xl font-bold text-primary">
-                  ChopCityzCC
+                  DARK AMAZON
                 </h3>
                 <p className="text-xs text-muted-foreground">Premium Marketplace</p>
               </div>
@@ -94,7 +94,7 @@ export function Footer() {
               </div>
             </div>
             <div className="text-sm text-muted-foreground">
-              © 2024 ChopCityzCC. Premium Marketplace.
+              © 2024 DARK AMAZON. Premium Marketplace.
             </div>
           </div>
         </div>

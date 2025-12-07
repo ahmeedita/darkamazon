@@ -23,7 +23,7 @@ export function Hero({ onGetStarted }: HeroProps) {
 
           <h1 className="font-display text-5xl md:text-7xl font-bold text-foreground mb-6">
             <span className="bg-gradient-gold bg-clip-text text-transparent">
-              ChopCityzCC
+              DARK AMAZON
             </span>
           </h1>
 
