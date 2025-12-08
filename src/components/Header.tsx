@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Crown, LogOut, User, MessageCircle } from 'lucide-react';
 import { AuthModal } from './AuthModal';
+import { Cart } from './Cart';
 
 interface HeaderProps {
   user: any;
@@ -41,6 +42,7 @@ export function Header({ user, onLogin, onLogout }: HeaderProps) {
             </nav>
 
             <div className="flex items-center space-x-4">
+              {user && <Cart />}
               {user ? (
                 <div className="flex items-center space-x-3">
                   <div className="flex items-center space-x-2 bg-card px-3 py-2 rounded-lg">

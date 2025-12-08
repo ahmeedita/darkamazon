@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CreditCard, MapPin, Building, Calendar, Shield, Eye, EyeOff } from 'lucide-react';
+import { CreditCard, MapPin, Building, Calendar, Shield, Eye, EyeOff, ShoppingCart } from 'lucide-react';
+import { useCart } from '@/contexts/CartContext';
+import { toast } from 'sonner';
 
 interface ProductCardProps {
   product: {
@@ -22,6 +24,7 @@ interface ProductCardProps {
 
 export function ProductCard({ product }: ProductCardProps) {
   const [showDetails, setShowDetails] = useState(false);
+  const { addItem } = useCart();
 
   const getTierColor = (tier: string) => {
     switch (tier) {
@@ -41,9 +44,25 @@ export function ProductCard({ product }: ProductCardProps) {
     }
   };
 
-  const handlePayPal = () => {
-    const paypalUrl = `https://www.paypal.com/paypalme/please62ha/${product.price}`;
-    window.open(paypalUrl, '_blank', 'noopener,noreferrer');
+  const getPrice = (tier: string) => {
+    switch (tier) {
+      case 'premium': return 30;
+      case 'standard': return 19.99;
+      case 'basic': return 15;
+      default: return 15;
+    }
+  };
+
+  const handleAddToCart = () => {
+    const price = getPrice(product.tier);
+    addItem({
+      id: product.id,
+      type: 'card',
+      name: `${getTierLabel(product.tier)} Card - ${product.bank}`,
+      price: price,
+      details: `${product.country} • ${product.balance}`,
+    });
+    toast.success('Added to cart!');
   };
 
   return (
@@ -56,7 +75,7 @@ export function ProductCard({ product }: ProductCardProps) {
           </Badge>
         </div>
         <span className="font-display text-xl font-bold text-primary">
-          £{product.price}
+          ${getPrice(product.tier).toFixed(2)}
         </span>
       </div>
 
@@ -112,14 +131,15 @@ export function ProductCard({ product }: ProductCardProps) {
       </div>
 
       <Button
-        onClick={handlePayPal}
+        onClick={handleAddToCart}
         className="w-full btn-gold text-lg py-3"
       >
-        Purchase via PayPal
+        <ShoppingCart className="w-5 h-5 mr-2" />
+        Add to Cart
       </Button>
 
       <p className="text-xs text-muted-foreground text-center">
-        Payment to @please62ha • Instant delivery
+        Instant delivery after checkout
       </p>
     </Card>
   );

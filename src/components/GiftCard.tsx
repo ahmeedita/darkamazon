@@ -1,8 +1,9 @@
-import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Gift, DollarSign, Store } from 'lucide-react';
+import { Gift, DollarSign, Store, ShoppingCart } from 'lucide-react';
+import { useCart } from '@/contexts/CartContext';
+import { toast } from 'sonner';
 
 interface GiftCardProps {
   product: {
@@ -15,6 +16,8 @@ interface GiftCardProps {
 }
 
 export function GiftCard({ product }: GiftCardProps) {
+  const { addItem } = useCart();
+
   const getBrandColor = (brand: string) => {
     switch (brand.toLowerCase()) {
       case 'amazon': return 'text-orange-500';
@@ -24,9 +27,15 @@ export function GiftCard({ product }: GiftCardProps) {
     }
   };
 
-  const handlePayPal = () => {
-    const paypalUrl = `https://www.paypal.com/paypalme/please62ha/${product.price}`;
-    window.open(paypalUrl, '_blank', 'noopener,noreferrer');
+  const handleAddToCart = () => {
+    addItem({
+      id: product.id,
+      type: 'giftcard',
+      name: `${product.brand} Gift Card`,
+      price: product.price,
+      details: `Value: $${product.value}`,
+    });
+    toast.success('Added to cart!');
   };
 
   return (
@@ -70,14 +79,15 @@ export function GiftCard({ product }: GiftCardProps) {
       </div>
 
       <Button
-        onClick={handlePayPal}
+        onClick={handleAddToCart}
         className="w-full btn-gold text-lg py-3"
       >
-        Purchase via PayPal
+        <ShoppingCart className="w-5 h-5 mr-2" />
+        Add to Cart
       </Button>
 
       <p className="text-xs text-muted-foreground text-center">
-        Payment to @please62ha • Instant delivery
+        Instant delivery after checkout
       </p>
     </Card>
   );
