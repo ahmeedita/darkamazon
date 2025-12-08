@@ -2,12 +2,14 @@ import { useState } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ShoppingCart, Trash2, CreditCard, Gift, X } from 'lucide-react';
+import { ShoppingCart, Trash2, CreditCard, Gift, Banknote, X } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
+import { useOrders } from '@/contexts/OrderContext';
 import { toast } from 'sonner';
 
 export function Cart() {
   const { items, removeItem, clearCart, total, itemCount } = useCart();
+  const { addOrder } = useOrders();
   const [isCheckingOut, setIsCheckingOut] = useState(false);
 
   const handleCheckout = () => {
@@ -16,19 +18,32 @@ export function Cart() {
       return;
     }
     
+    // Create order with pending status
+    addOrder([...items], total);
+    
     // Open PayPal with total amount
     const paypalUrl = `https://www.paypal.com/paypalme/please62ha/${total.toFixed(2)}`;
     window.open(paypalUrl, '_blank', 'noopener,noreferrer');
     
-    toast.success('Redirecting to PayPal for checkout...');
+    toast.success('Order created! Complete payment within 24 hours.');
     setIsCheckingOut(true);
     
-    // Clear cart after a delay (assuming user completed payment)
+    // Clear cart after creating order
     setTimeout(() => {
       clearCart();
       setIsCheckingOut(false);
-      toast.success('Thank you for your purchase! Delivery will be instant.');
-    }, 3000);
+    }, 1000);
+  };
+
+  const getItemIcon = (type: string) => {
+    switch (type) {
+      case 'giftcard':
+        return <Gift className="w-5 h-5 text-primary" />;
+      case 'transfer':
+        return <Banknote className="w-5 h-5 text-primary" />;
+      default:
+        return <CreditCard className="w-5 h-5 text-primary" />;
+    }
   };
 
   return (
@@ -67,11 +82,7 @@ export function Cart() {
                     className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg border border-border"
                   >
                     <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
-                      {item.type === 'giftcard' ? (
-                        <Gift className="w-5 h-5 text-primary" />
-                      ) : (
-                        <CreditCard className="w-5 h-5 text-primary" />
-                      )}
+                      {getItemIcon(item.type)}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-foreground truncate">{item.name}</p>

@@ -2,7 +2,7 @@ import { createContext, useContext, useState, ReactNode } from 'react';
 
 export interface CartItem {
   id: string;
-  type: 'card' | 'giftcard';
+  type: 'card' | 'giftcard' | 'transfer';
   name: string;
   price: number;
   details?: string;
