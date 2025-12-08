@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ProductCard } from './ProductCard';
 import { GiftCard } from './GiftCard';
+import { MoneyTransfer } from './MoneyTransfer';
 import { Button } from '@/components/ui/button';
 import { Filter } from 'lucide-react';
 
@@ -908,17 +909,35 @@ const giftCardProducts = [
   { id: 'gc12', brand: 'eBay', value: 2000, price: 90, tier: 'giftcard' as const },
 ];
 
+// Money Transfers
+const moneyTransferProducts = [
+  // $500 transfers for $70
+  { id: 'mt1', provider: 'PayPal', value: 500, price: 70, tier: 'transfer' as const },
+  { id: 'mt2', provider: 'Western Union', value: 500, price: 70, tier: 'transfer' as const },
+  { id: 'mt3', provider: 'MoneyGram', value: 500, price: 70, tier: 'transfer' as const },
+  { id: 'mt4', provider: 'Cash App', value: 500, price: 70, tier: 'transfer' as const },
+  // $2500 transfers for $120
+  { id: 'mt5', provider: 'PayPal', value: 2500, price: 120, tier: 'transfer' as const },
+  { id: 'mt6', provider: 'Western Union', value: 2500, price: 120, tier: 'transfer' as const },
+  { id: 'mt7', provider: 'MoneyGram', value: 2500, price: 120, tier: 'transfer' as const },
+  { id: 'mt8', provider: 'Cash App', value: 2500, price: 120, tier: 'transfer' as const },
+];
+
 export function ProductGrid({ user }: ProductGridProps) {
-  const [filter, setFilter] = useState<'all' | 'premium' | 'standard' | 'basic' | 'giftcard'>('all');
+  const [filter, setFilter] = useState<'all' | 'premium' | 'standard' | 'basic' | 'giftcard' | 'transfer'>('all');
 
   const filteredProducts = filter === 'all' 
     ? sampleProducts 
-    : filter === 'giftcard'
+    : filter === 'giftcard' || filter === 'transfer'
     ? []
     : sampleProducts.filter(product => product.tier === filter);
 
   const filteredGiftCards = filter === 'all' || filter === 'giftcard' 
     ? giftCardProducts 
+    : [];
+
+  const filteredTransfers = filter === 'all' || filter === 'transfer'
+    ? moneyTransferProducts
     : [];
 
   if (!user) {
@@ -960,7 +979,7 @@ export function ProductGrid({ user }: ProductGridProps) {
 
         <div className="flex justify-center mb-8">
           <div className="flex flex-wrap justify-center gap-1 bg-card rounded-lg p-1 border border-border">
-            {['all', 'premium', 'standard', 'basic', 'giftcard'].map((filterOption) => (
+            {['all', 'premium', 'standard', 'basic', 'giftcard', 'transfer'].map((filterOption) => (
               <Button
                 key={filterOption}
                 onClick={() => setFilter(filterOption as any)}
@@ -968,7 +987,7 @@ export function ProductGrid({ user }: ProductGridProps) {
                 className={filter === filterOption ? 'btn-gold' : 'text-muted-foreground hover:text-foreground'}
                 size="sm"
               >
-                {filterOption === 'giftcard' ? 'Gift Cards' : filterOption.charAt(0).toUpperCase() + filterOption.slice(1)}
+                {filterOption === 'giftcard' ? 'Gift Cards' : filterOption === 'transfer' ? 'Transfers' : filterOption.charAt(0).toUpperCase() + filterOption.slice(1)}
               </Button>
             ))}
           </div>
@@ -981,9 +1000,12 @@ export function ProductGrid({ user }: ProductGridProps) {
           {filteredGiftCards.map((giftCard) => (
             <GiftCard key={giftCard.id} product={giftCard} />
           ))}
+          {filteredTransfers.map((transfer) => (
+            <MoneyTransfer key={transfer.id} product={transfer} />
+          ))}
         </div>
 
-        {filteredProducts.length === 0 && filteredGiftCards.length === 0 && (
+        {filteredProducts.length === 0 && filteredGiftCards.length === 0 && filteredTransfers.length === 0 && (
           <div className="text-center py-12">
             <p className="text-muted-foreground">No products found for the selected filter.</p>
           </div>

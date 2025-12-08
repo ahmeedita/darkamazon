@@ -1,6 +1,7 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Crown, LogOut, User, MessageCircle } from 'lucide-react';
+import { Crown, LogOut, User, MessageCircle, Package } from 'lucide-react';
 import { AuthModal } from './AuthModal';
 import { Cart } from './Cart';
 
@@ -35,6 +36,10 @@ export function Header({ user, onLogin, onLogout }: HeaderProps) {
               <a href="#features" className="text-foreground hover:text-primary transition-colors font-medium">
                 Features
               </a>
+              <Link to="/orders" className="flex items-center space-x-1 text-foreground hover:text-primary transition-colors font-medium">
+                <Package className="w-4 h-4" />
+                <span>Orders</span>
+              </Link>
               <a href="https://t.me/Chopcityzcc" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-1 text-foreground hover:text-primary transition-colors font-medium">
                 <MessageCircle className="w-4 h-4" />
                 <span>Support</span>
