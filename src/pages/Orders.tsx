@@ -70,44 +70,44 @@ export default function Orders() {
   return (
     <div className="min-h-screen bg-background">
       <header className="fixed top-0 w-full z-50 bg-background/95 backdrop-blur-sm border-b border-border">
-        <div className="container mx-auto px-4 py-4">
+        <div className="container mx-auto px-4 py-3 md:py-4">
           <div className="flex items-center justify-between">
             <Link to="/" className="flex items-center space-x-2">
-              <Crown className="w-8 h-8 text-primary" />
+              <Crown className="w-6 h-6 md:w-8 md:h-8 text-primary" />
               <div>
-                <h1 className="font-display text-2xl font-bold text-primary">DARK AMAZON</h1>
-                <p className="text-xs text-muted-foreground">Premium Marketplace</p>
+                <h1 className="font-display text-lg md:text-2xl font-bold text-primary">DARK AMAZON</h1>
+                <p className="text-[10px] md:text-xs text-muted-foreground hidden sm:block">Premium Marketplace</p>
               </div>
             </Link>
             <Link to="/">
-              <Button variant="outline" className="border-border">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Shop
+              <Button variant="outline" className="border-border text-xs md:text-sm" size="sm">
+                <ArrowLeft className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
+                Back
               </Button>
             </Link>
           </div>
         </div>
       </header>
 
-      <main className="pt-24 pb-12">
+      <main className="pt-20 md:pt-24 pb-12">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-8">
-            <h2 className="font-display text-4xl font-bold text-foreground mb-4">
+          <div className="text-center mb-6 md:mb-8">
+            <h2 className="font-display text-2xl md:text-4xl font-bold text-foreground mb-2 md:mb-4">
               My Orders
             </h2>
-            <p className="text-muted-foreground">
+            <p className="text-sm md:text-base text-muted-foreground">
               Track your order status and payment confirmation
             </p>
           </div>
 
-          <div className="flex justify-center mb-8">
+          <div className="flex justify-center mb-6 md:mb-8">
             <div className="flex flex-wrap justify-center gap-1 bg-card rounded-lg p-1 border border-border">
               {filterButtons.map(({ key, label }) => (
                 <Button
                   key={key}
                   onClick={() => setFilter(key)}
                   variant={filter === key ? 'default' : 'ghost'}
-                  className={filter === key ? 'btn-gold' : 'text-muted-foreground hover:text-foreground'}
+                  className={`${filter === key ? 'btn-gold' : 'text-muted-foreground hover:text-foreground'} text-xs md:text-sm px-2 md:px-3`}
                   size="sm"
                 >
                   {label}

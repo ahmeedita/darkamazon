@@ -966,25 +966,25 @@ export function ProductGrid({ user }: ProductGridProps) {
   }
 
   return (
-    <section id="products" className="py-20">
+    <section id="products" className="py-12 md:py-20">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
-          <h2 className="font-display text-4xl font-bold text-foreground mb-4">
+        <div className="text-center mb-8 md:mb-12">
+          <h2 className="font-display text-2xl md:text-4xl font-bold text-foreground mb-2 md:mb-4">
             Premium Card Collection
           </h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-sm md:text-xl text-muted-foreground max-w-2xl mx-auto">
             Curated selection of high-quality cards with verified success rates
           </p>
         </div>
 
-        <div className="flex justify-center mb-8">
+        <div className="flex justify-center mb-6 md:mb-8">
           <div className="flex flex-wrap justify-center gap-1 bg-card rounded-lg p-1 border border-border">
             {['all', 'premium', 'standard', 'basic', 'giftcard', 'transfer'].map((filterOption) => (
               <Button
                 key={filterOption}
                 onClick={() => setFilter(filterOption as any)}
                 variant={filter === filterOption ? 'default' : 'ghost'}
-                className={filter === filterOption ? 'btn-gold' : 'text-muted-foreground hover:text-foreground'}
+                className={`${filter === filterOption ? 'btn-gold' : 'text-muted-foreground hover:text-foreground'} text-xs md:text-sm px-2 md:px-3`}
                 size="sm"
               >
                 {filterOption === 'giftcard' ? 'Gift Cards' : filterOption === 'transfer' ? 'Transfers' : filterOption.charAt(0).toUpperCase() + filterOption.slice(1)}
