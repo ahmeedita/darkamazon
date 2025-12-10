@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ShoppingCart, Trash2, CreditCard, Gift, Banknote, X } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { ShoppingCart, Trash2, CreditCard, Gift, Banknote, X, Mail, User } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
 import { useOrders } from '@/contexts/OrderContext';
 import { toast } from 'sonner';
@@ -14,10 +16,25 @@ export function Cart() {
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [currentOrderId, setCurrentOrderId] = useState<string>('');
+  const [deliveryEmail, setDeliveryEmail] = useState('');
+  const [recipientEmail, setRecipientEmail] = useState('');
+
+  // Check if cart has any transfer items
+  const hasTransferItems = items.some(item => item.type === 'transfer');
 
   const handleCheckout = () => {
     if (items.length === 0) {
       toast.error('Your cart is empty');
+      return;
+    }
+
+    if (!deliveryEmail || !deliveryEmail.includes('@')) {
+      toast.error('Please enter a valid delivery email');
+      return;
+    }
+
+    if (hasTransferItems && (!recipientEmail || !recipientEmail.includes('@'))) {
+      toast.error('Please enter a valid recipient email for money transfer');
       return;
     }
     
@@ -38,6 +55,8 @@ export function Cart() {
     // Clear cart after payment initiated
     setTimeout(() => {
       clearCart();
+      setDeliveryEmail('');
+      setRecipientEmail('');
       setIsCheckingOut(false);
     }, 1000);
   };
@@ -114,6 +133,42 @@ export function Cart() {
                 </div>
 
                 <div className="border-t border-border pt-4 mt-4 space-y-4">
+                  {/* Delivery Email Input */}
+                  <div className="space-y-2">
+                    <Label htmlFor="delivery-email" className="text-sm text-foreground flex items-center gap-2">
+                      <Mail className="w-4 h-4 text-primary" />
+                      Delivery Email
+                    </Label>
+                    <Input
+                      id="delivery-email"
+                      type="email"
+                      placeholder="your@email.com"
+                      value={deliveryEmail}
+                      onChange={(e) => setDeliveryEmail(e.target.value)}
+                      className="input-premium text-sm"
+                    />
+                    <p className="text-xs text-muted-foreground">Your goods will be sent to this email</p>
+                  </div>
+
+                  {/* Recipient Email for Money Transfers */}
+                  {hasTransferItems && (
+                    <div className="space-y-2">
+                      <Label htmlFor="recipient-email" className="text-sm text-foreground flex items-center gap-2">
+                        <User className="w-4 h-4 text-primary" />
+                        Recipient Email/Account
+                      </Label>
+                      <Input
+                        id="recipient-email"
+                        type="email"
+                        placeholder="recipient@email.com"
+                        value={recipientEmail}
+                        onChange={(e) => setRecipientEmail(e.target.value)}
+                        className="input-premium text-sm"
+                      />
+                      <p className="text-xs text-muted-foreground">PayPal, Western Union, etc. recipient email</p>
+                    </div>
+                  )}
+
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Subtotal ({itemCount} items)</span>
                     <span className="text-xl font-bold text-primary">${total.toFixed(2)}</span>
@@ -152,6 +207,8 @@ export function Cart() {
         total={total}
         orderId={currentOrderId}
         onPaymentInitiated={handlePaymentInitiated}
+        deliveryEmail={deliveryEmail}
+        recipientEmail={hasTransferItems ? recipientEmail : undefined}
       />
     </>
   );
