@@ -11,6 +11,8 @@ interface CryptoPaymentModalProps {
   total: number;
   orderId: string;
   onPaymentInitiated: () => void;
+  deliveryEmail: string;
+  recipientEmail?: string;
 }
 
 const CRYPTO_OPTIONS = [
@@ -20,7 +22,7 @@ const CRYPTO_OPTIONS = [
   { symbol: 'SOL', name: 'Solana', icon: 'https://cryptologos.cc/logos/solana-sol-logo.svg' },
 ];
 
-export function CryptoPaymentModal({ isOpen, onClose, total, orderId, onPaymentInitiated }: CryptoPaymentModalProps) {
+export function CryptoPaymentModal({ isOpen, onClose, total, orderId, onPaymentInitiated, deliveryEmail, recipientEmail }: CryptoPaymentModalProps) {
   const [selectedCrypto, setSelectedCrypto] = useState<string | null>(null);
   const [paymentAddress, setPaymentAddress] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -33,7 +35,7 @@ export function CryptoPaymentModal({ isOpen, onClose, total, orderId, onPaymentI
 
     try {
       const { data, error } = await supabase.functions.invoke('create-crypto-payment', {
-        body: { symbol, orderId, amount: total },
+        body: { symbol, orderId, amount: total, deliveryEmail, recipientEmail },
       });
 
       if (error) throw error;
@@ -88,6 +90,10 @@ export function CryptoPaymentModal({ isOpen, onClose, total, orderId, onPaymentI
           <div className="text-center py-2">
             <p className="text-muted-foreground text-sm">Order Total</p>
             <p className="text-3xl font-bold text-primary">${total.toFixed(2)}</p>
+            <p className="text-xs text-muted-foreground mt-1">Delivery to: {deliveryEmail}</p>
+            {recipientEmail && (
+              <p className="text-xs text-muted-foreground">Recipient: {recipientEmail}</p>
+            )}
           </div>
 
           {!selectedCrypto ? (
