@@ -106,3 +106,10 @@ export const BNBLogo = ({ className = "w-6 h-6" }: { className?: string }) => (
     <path d="M16 7l3 3-3 3-3-3 3-3zm-6.5 6.5l3 3-3 3-3-3 3-3zm13 0l3 3-3 3-3-3 3-3zM16 20l3 3-3 3-3-3 3-3zm0-6.5l3 3-3 3-3-3 3-3z" fill="white"/>
   </svg>
 );
+
+export const SolanaLogo = ({ className = "w-6 h-6" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 32 32" fill="none">
+    <circle cx="16" cy="16" r="16" fill="#9945FF"/>
+    <path d="M9 20.5l2-2h11l-2 2H9zm0-5l2-2h11l-2 2H9zm13-3H11l2-2h11l-2 2z" fill="white"/>
+  </svg>
+);
