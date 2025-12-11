@@ -5,11 +5,11 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Wallet addresses for receiving payments
+// Wallet addresses for receiving payments (forward addresses)
 const WALLET_ADDRESSES: Record<string, string> = {
   btc: "1PcxUzNDBv5WgmLnYNoAdC5qQBdaGuFhUR",
-  bnb: "0x4f1ab5d41e31c9f13968a65bfb04b97528b32c2a",
-  sol: "59Levrr2hfKX6LRcbCUvkXeQG7xuNGYdapz8R4xi128Q",
+  ltc: "ltc1qexample", // User needs to provide their LTC address
+  xmr: "xmr_address_here", // User needs to provide their XMR address
   eth: "0x4f1ab5d41e31c9f13968a65bfb04b97528b32c2a",
 };
 
@@ -17,6 +17,8 @@ interface PaymentRequest {
   symbol: string;
   orderId: string;
   amount: number;
+  deliveryEmail?: string;
+  recipientEmail?: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -26,55 +28,73 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { symbol, orderId, amount }: PaymentRequest = await req.json();
+    const { symbol, orderId, amount, deliveryEmail, recipientEmail }: PaymentRequest = await req.json();
     
-    console.log(`Creating payment for ${symbol}, order: ${orderId}, amount: $${amount}`);
+    console.log(`Creating NoKYCPay payment for ${symbol}, order: ${orderId}, amount: $${amount}`);
 
     const cryptoSymbol = symbol.toLowerCase();
-    const destinationAddress = WALLET_ADDRESSES[cryptoSymbol];
+    const forwardAddress = WALLET_ADDRESSES[cryptoSymbol];
 
-    if (!destinationAddress) {
+    if (!forwardAddress) {
       return new Response(
         JSON.stringify({ error: `Unsupported cryptocurrency: ${symbol}` }),
         { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
 
-    // Call Cryptway API to create payment address
-    const cryptwayResponse = await fetch(
-      `https://api.cryptway.io/v1/payments/cryptos/${cryptoSymbol}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          to: destinationAddress,
-          confirmations: 2,
-        }),
-      }
-    );
+    const apiKey = Deno.env.get("NOKYCPAY_API_KEY");
+    if (!apiKey) {
+      console.error("NOKYCPAY_API_KEY not configured");
+      return new Response(
+        JSON.stringify({ error: "Payment service not configured" }),
+        { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
 
-    if (!cryptwayResponse.ok) {
-      const errorText = await cryptwayResponse.text();
-      console.error("Cryptway API error:", errorText);
+    // Create webhook payload with order details
+    const webhookPayload = JSON.stringify({
+      order_id: orderId,
+      amount: amount,
+      delivery_email: deliveryEmail,
+      recipient_email: recipientEmail,
+    });
+
+    // Call NoKYCPay API to create payment address
+    const nokycpayResponse = await fetch("http://nokycpay.me/api/createAddress", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+      },
+      body: JSON.stringify({
+        crypto_currency: cryptoSymbol,
+        forward_address: forwardAddress,
+        webhook_payload: webhookPayload,
+        api_key: apiKey,
+      }),
+    });
+
+    if (!nokycpayResponse.ok) {
+      const errorText = await nokycpayResponse.text();
+      console.error("NoKYCPay API error:", errorText);
       return new Response(
         JSON.stringify({ error: "Failed to create payment address", details: errorText }),
         { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
 
-    const cryptwayData = await cryptwayResponse.json();
-    console.log("Cryptway response:", cryptwayData);
+    const nokycpayData = await nokycpayResponse.json();
+    console.log("NoKYCPay response:", nokycpayData);
 
     return new Response(
       JSON.stringify({
         success: true,
-        paymentAddress: cryptwayData.address || destinationAddress,
+        paymentAddress: nokycpayData.generated_address,
         symbol: cryptoSymbol.toUpperCase(),
         orderId,
         amount,
-        data: cryptwayData,
+        expiresAt: nokycpayData.expires_at,
+        uniqueId: nokycpayData.unique_id,
       }),
       { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );

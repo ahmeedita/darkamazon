@@ -18,8 +18,8 @@ interface CryptoPaymentModalProps {
 const CRYPTO_OPTIONS = [
   { symbol: 'BTC', name: 'Bitcoin', icon: 'https://cryptologos.cc/logos/bitcoin-btc-logo.svg' },
   { symbol: 'ETH', name: 'Ethereum', icon: 'https://cryptologos.cc/logos/ethereum-eth-logo.svg' },
-  { symbol: 'BNB', name: 'BNB', icon: 'https://cryptologos.cc/logos/bnb-bnb-logo.svg' },
-  { symbol: 'SOL', name: 'Solana', icon: 'https://cryptologos.cc/logos/solana-sol-logo.svg' },
+  { symbol: 'LTC', name: 'Litecoin', icon: 'https://cryptologos.cc/logos/litecoin-ltc-logo.svg' },
+  { symbol: 'XMR', name: 'Monero', icon: 'https://cryptologos.cc/logos/monero-xmr-logo.svg' },
 ];
 
 export function CryptoPaymentModal({ isOpen, onClose, total, orderId, onPaymentInitiated, deliveryEmail, recipientEmail }: CryptoPaymentModalProps) {
