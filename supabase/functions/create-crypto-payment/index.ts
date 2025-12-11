@@ -42,6 +42,28 @@ serve(async (req: Request): Promise<Response> => {
       );
     }
 
+    // Fetch crypto price from CoinGecko
+    const coinIds: Record<string, string> = {
+      btc: 'bitcoin',
+      eth: 'ethereum',
+      ltc: 'litecoin',
+      xmr: 'monero',
+    };
+    
+    let cryptoAmount = 0;
+    try {
+      const priceRes = await fetch(
+        `https://api.coingecko.com/api/v3/simple/price?ids=${coinIds[cryptoSymbol]}&vs_currencies=usd`
+      );
+      const priceData = await priceRes.json();
+      const cryptoPrice = priceData[coinIds[cryptoSymbol]]?.usd;
+      if (cryptoPrice) {
+        cryptoAmount = amount / cryptoPrice;
+      }
+    } catch (priceError) {
+      console.error("Error fetching crypto price:", priceError);
+    }
+
     const webhookPayload = JSON.stringify({
       order_id: orderId,
       amount: amount,
@@ -82,6 +104,7 @@ serve(async (req: Request): Promise<Response> => {
         symbol: cryptoSymbol.toUpperCase(),
         orderId,
         amount,
+        cryptoAmount: cryptoAmount.toFixed(8),
         expiresAt: nokycpayData.expires_at,
         uniqueId: nokycpayData.unique_id,
       }),

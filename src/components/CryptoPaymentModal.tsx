@@ -41,9 +41,11 @@ export function CryptoPaymentModal({
   const [selectedCrypto, setSelectedCrypto] = useState<string | null>(initialCrypto || null);
   const [paymentAddress, setPaymentAddress] = useState<string | null>(initialAddress || null);
   const [expiresAt, setExpiresAt] = useState<string | null>(initialExpiresAt || null);
+  const [cryptoAmount, setCryptoAmount] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [copiedAddress, setCopiedAddress] = useState(false);
   const [copiedAmount, setCopiedAmount] = useState(false);
+  const [copiedCryptoAmount, setCopiedCryptoAmount] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState<string>('');
   const [progressPercent, setProgressPercent] = useState(100);
 
@@ -103,12 +105,14 @@ export function CryptoPaymentModal({
       if (data?.paymentAddress) {
         setPaymentAddress(data.paymentAddress);
         setExpiresAt(data.expiresAt);
+        setCryptoAmount(data.cryptoAmount || null);
         
         // Store payment details in localStorage for order resume
         const paymentDetails = {
           crypto: symbol,
           address: data.paymentAddress,
           expiresAt: data.expiresAt,
+          cryptoAmount: data.cryptoAmount,
         };
         localStorage.setItem(`payment_${orderId}`, JSON.stringify(paymentDetails));
       } else if (data?.error) {
@@ -137,6 +141,15 @@ export function CryptoPaymentModal({
     setCopiedAmount(true);
     toast.success('Amount copied to clipboard');
     setTimeout(() => setCopiedAmount(false), 2000);
+  };
+
+  const handleCopyCryptoAmount = () => {
+    if (cryptoAmount) {
+      navigator.clipboard.writeText(cryptoAmount);
+      setCopiedCryptoAmount(true);
+      toast.success('Crypto amount copied to clipboard');
+      setTimeout(() => setCopiedCryptoAmount(false), 2000);
+    }
   };
 
   const handleConfirmPayment = () => {
@@ -216,7 +229,7 @@ export function CryptoPaymentModal({
               {/* Amount and Expiry */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-[#1e293b]/50 rounded-lg p-4 border border-[#334155]">
-                  <p className="text-primary text-xs mb-1">Amount to pay</p>
+                  <p className="text-primary text-xs mb-1">Amount (USD)</p>
                   <div className="flex items-center gap-2">
                     <span className="text-white text-xl font-bold">${total.toFixed(2)}</span>
                     <Button
@@ -230,13 +243,34 @@ export function CryptoPaymentModal({
                   </div>
                 </div>
                 <div className="bg-[#1e293b]/50 rounded-lg p-4 border border-[#334155]">
-                  <p className="text-muted-foreground text-xs mb-1">Expires</p>
-                  <p className="text-white text-sm mb-2">(in {timeRemaining})</p>
-                  <Progress 
-                    value={progressPercent} 
-                    className="h-2 bg-[#334155]"
-                  />
+                  <p className="text-primary text-xs mb-1">Amount ({selectedCrypto})</p>
+                  <div className="flex items-center gap-2">
+                    <span className="text-white text-lg font-bold font-mono">
+                      {cryptoAmount || '...'} 
+                    </span>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="h-7 px-2 bg-[#334155] hover:bg-[#475569] text-white text-xs"
+                      onClick={handleCopyCryptoAmount}
+                      disabled={!cryptoAmount}
+                    >
+                      {copiedCryptoAmount ? <Check className="w-3 h-3" /> : 'Copy'}
+                    </Button>
+                  </div>
                 </div>
+              </div>
+
+              {/* Expiry Timer */}
+              <div className="bg-[#1e293b]/50 rounded-lg p-4 border border-[#334155]">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-muted-foreground text-xs">Expires in</p>
+                  <p className="text-white text-sm font-medium">{timeRemaining}</p>
+                </div>
+                <Progress 
+                  value={progressPercent} 
+                  className="h-2 bg-[#334155]"
+                />
               </div>
 
               {/* Payment Address */}
