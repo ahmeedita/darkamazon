@@ -1,4 +1,4 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -8,27 +8,18 @@ const corsHeaders = {
 // Wallet addresses for receiving payments (forward addresses)
 const WALLET_ADDRESSES: Record<string, string> = {
   btc: "1PcxUzNDBv5WgmLnYNoAdC5qQBdaGuFhUR",
-  ltc: "ltc1qexample", // User needs to provide their LTC address
-  xmr: "xmr_address_here", // User needs to provide their XMR address
+  ltc: "ltc1qexample",
+  xmr: "xmr_address_here",
   eth: "0x4f1ab5d41e31c9f13968a65bfb04b97528b32c2a",
 };
 
-interface PaymentRequest {
-  symbol: string;
-  orderId: string;
-  amount: number;
-  deliveryEmail?: string;
-  recipientEmail?: string;
-}
-
-const handler = async (req: Request): Promise<Response> => {
-  // Handle CORS preflight requests
+serve(async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { symbol, orderId, amount, deliveryEmail, recipientEmail }: PaymentRequest = await req.json();
+    const { symbol, orderId, amount, deliveryEmail, recipientEmail } = await req.json();
     
     console.log(`Creating NoKYCPay payment for ${symbol}, order: ${orderId}, amount: $${amount}`);
 
@@ -51,7 +42,6 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Create webhook payload with order details
     const webhookPayload = JSON.stringify({
       order_id: orderId,
       amount: amount,
@@ -59,8 +49,7 @@ const handler = async (req: Request): Promise<Response> => {
       recipient_email: recipientEmail,
     });
 
-    // Call NoKYCPay API to create payment address
-    const nokycpayResponse = await fetch("http://nokycpay.me/api/createAddress", {
+    const nokycpayResponse = await fetch("https://nokycpay.me/api/createAddress", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -98,13 +87,12 @@ const handler = async (req: Request): Promise<Response> => {
       }),
       { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error in create-crypto-payment:", error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: errorMessage }),
       { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
   }
-};
-
-serve(handler);
+});
