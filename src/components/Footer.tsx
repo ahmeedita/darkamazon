@@ -1,7 +1,7 @@
 import { Crown, MessageCircle, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { BitcoinLogo, EthereumLogo, BNBLogo, SolanaLogo } from './BrandLogos';
+import { BitcoinLogo, EthereumLogo, LitecoinLogo, MoneroLogo } from './BrandLogos';
 
 export function Footer() {
   const handleNewsletterSubmit = (e: React.FormEvent) => {
@@ -97,12 +97,12 @@ export function Footer() {
                 <span className="text-xs text-muted-foreground">ETH</span>
               </div>
               <div className="flex flex-col items-center space-y-1">
-                <BNBLogo className="w-8 h-8 md:w-10 md:h-10" />
-                <span className="text-xs text-muted-foreground">BNB</span>
+                <LitecoinLogo className="w-8 h-8 md:w-10 md:h-10" />
+                <span className="text-xs text-muted-foreground">LTC</span>
               </div>
               <div className="flex flex-col items-center space-y-1">
-                <SolanaLogo className="w-8 h-8 md:w-10 md:h-10" />
-                <span className="text-xs text-muted-foreground">SOL</span>
+                <MoneroLogo className="w-8 h-8 md:w-10 md:h-10" />
+                <span className="text-xs text-muted-foreground">XMR</span>
               </div>
             </div>
           </div>
