@@ -8,8 +8,8 @@ const corsHeaders = {
 // Wallet addresses for receiving payments (forward addresses)
 const WALLET_ADDRESSES: Record<string, string> = {
   btc: "1PcxUzNDBv5WgmLnYNoAdC5qQBdaGuFhUR",
-  ltc: "ltc1qexample",
-  xmr: "xmr_address_here",
+  ltc: "LYPP7kKneHqaVXjQvedQf9fqsu5zfHSgzS",
+  xmr: "4ADuT2s1u6sctreg5Tm1Ce5jir9gpeNRAZhHGWs2LK1cLobktsBw3iDWb4KDzPoHwhV4cX8EDMwZ7EQP4RcWu1Y2Dg8WeJB",
   eth: "0x4f1ab5d41e31c9f13968a65bfb04b97528b32c2a",
 };
 

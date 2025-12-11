@@ -3,15 +3,24 @@ import { Link } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Crown, ArrowLeft, Clock, CheckCircle, XCircle, Package } from 'lucide-react';
-import { useOrders } from '@/contexts/OrderContext';
+import { Crown, ArrowLeft, Clock, CheckCircle, XCircle, Package, CreditCard } from 'lucide-react';
+import { useOrders, Order } from '@/contexts/OrderContext';
+import { CryptoPaymentModal } from '@/components/CryptoPaymentModal';
 
 type FilterType = 'all' | 'pending' | 'completed' | 'canceled';
+
+interface PaymentDetails {
+  crypto: string;
+  address: string;
+  expiresAt: string;
+}
 
 export default function Orders() {
   const { getFilteredOrders } = useOrders();
   const [filter, setFilter] = useState<FilterType>('all');
   const [, setTick] = useState(0);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [paymentDetails, setPaymentDetails] = useState<PaymentDetails | null>(null);
 
   // Force re-render every second for countdown updates
   useEffect(() => {
@@ -58,6 +67,17 @@ export default function Orders() {
       default:
         return null;
     }
+  };
+
+  const handleResumePayment = (order: Order) => {
+    // Try to get stored payment details
+    const storedPayment = localStorage.getItem(`payment_${order.id}`);
+    if (storedPayment) {
+      setPaymentDetails(JSON.parse(storedPayment));
+    } else {
+      setPaymentDetails(null);
+    }
+    setSelectedOrder(order);
   };
 
   const filterButtons: { key: FilterType; label: string }[] = [
@@ -134,7 +154,11 @@ export default function Orders() {
           ) : (
             <div className="space-y-4 max-w-3xl mx-auto">
               {orders.map(order => (
-                <Card key={order.id} className="card-premium p-6">
+                <Card 
+                  key={order.id} 
+                  className={`card-premium p-6 ${order.status === 'pending' ? 'cursor-pointer hover:border-primary/50 transition-colors' : ''}`}
+                  onClick={() => order.status === 'pending' && handleResumePayment(order)}
+                >
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center space-x-3">
                       {getStatusIcon(order.status)}
@@ -170,7 +194,19 @@ export default function Orders() {
                     
                     {order.status === 'pending' && (
                       <div className="text-right">
-                        <p className="text-sm text-muted-foreground">Payment Pending</p>
+                        <div className="flex items-center gap-2 mb-1">
+                          <Button 
+                            size="sm" 
+                            className="btn-gold text-xs"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleResumePayment(order);
+                            }}
+                          >
+                            <CreditCard className="w-3 h-3 mr-1" />
+                            Complete Payment
+                          </Button>
+                        </div>
                         <div className="flex items-center space-x-2 text-yellow-500">
                           <Clock className="w-4 h-4" />
                           <span className="font-mono text-lg font-bold">
@@ -178,7 +214,7 @@ export default function Orders() {
                           </span>
                         </div>
                         <p className="text-xs text-muted-foreground mt-1">
-                          Auto-cancels if not paid
+                          Click to resume payment
                         </p>
                       </div>
                     )}
@@ -207,6 +243,27 @@ export default function Orders() {
           )}
         </div>
       </main>
+
+      {/* Payment Modal for resuming payment */}
+      {selectedOrder && (
+        <CryptoPaymentModal
+          isOpen={!!selectedOrder}
+          onClose={() => {
+            setSelectedOrder(null);
+            setPaymentDetails(null);
+          }}
+          total={selectedOrder.total}
+          orderId={selectedOrder.id}
+          onPaymentInitiated={() => {
+            setSelectedOrder(null);
+            setPaymentDetails(null);
+          }}
+          deliveryEmail=""
+          initialCrypto={paymentDetails?.crypto}
+          initialAddress={paymentDetails?.address}
+          initialExpiresAt={paymentDetails?.expiresAt}
+        />
+      )}
     </div>
   );
 }
