@@ -4,6 +4,7 @@ import { Hero } from '@/components/Hero';
 import { ProductGrid } from '@/components/ProductGrid';
 import { Features } from '@/components/Features';
 import { Footer } from '@/components/Footer';
+import { CryptoTicker } from '@/components/CryptoTicker';
 import { AuthModal } from '@/components/AuthModal';
 
 const Index = () => {
@@ -48,6 +49,7 @@ const Index = () => {
       </main>
 
       <Footer />
+      <CryptoTicker />
 
       <AuthModal
         isOpen={authModalOpen}
