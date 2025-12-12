@@ -20,7 +20,7 @@ interface OrderContextType {
 const OrderContext = createContext<OrderContextType | undefined>(undefined);
 
 const STORAGE_KEY = 'darkAmazon_orders';
-const EXPIRY_TIME = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+const EXPIRY_TIME = 2 * 60 * 60 * 1000; // 2 hours in milliseconds
 
 export function OrderProvider({ children }: { children: ReactNode }) {
   const [orders, setOrders] = useState<Order[]>(() => {

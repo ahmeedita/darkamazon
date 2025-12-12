@@ -156,4 +156,27 @@
     @apply focus:ring-2 focus:ring-primary focus:border-transparent;
     @apply transition-all duration-200;
   }
+
+  /* Crypto ticker animation */
+  .ticker-wrapper {
+    @apply relative w-full overflow-hidden;
+  }
+
+  .ticker-content {
+    @apply flex whitespace-nowrap;
+    animation: ticker 30s linear infinite;
+  }
+
+  .ticker-content:hover {
+    animation-play-state: paused;
+  }
+
+  @keyframes ticker {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
 }
