@@ -50,8 +50,8 @@ export function Cart() {
       reserveCards(cardIds, orderId);
     }
     
-    // Create order with pending status
-    addOrder([...items], total);
+    // Create order with pending status using the same orderId
+    addOrder([...items], total, orderId);
     
     // Show crypto payment modal
     setShowPaymentModal(true);

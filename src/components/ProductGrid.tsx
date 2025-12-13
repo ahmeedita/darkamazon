@@ -48,12 +48,17 @@ export function ProductGrid({ user }: ProductGridProps) {
   const [filter, setFilter] = useState<'all' | 'premium' | 'standard' | 'basic' | 'giftcard' | 'transfer'>('all');
   const [availableCards, setAvailableCards] = useState(() => getAvailableCards());
 
-  // Refresh available cards every 5 seconds to pick up reservation changes
+  // Refresh available cards every 5 seconds and on card release events
   useEffect(() => {
-    const interval = setInterval(() => {
-      setAvailableCards(getAvailableCards());
-    }, 5000);
-    return () => clearInterval(interval);
+    const refreshCards = () => setAvailableCards(getAvailableCards());
+    
+    const interval = setInterval(refreshCards, 5000);
+    window.addEventListener('cardsReleased', refreshCards);
+    
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('cardsReleased', refreshCards);
+    };
   }, []);
 
   const sampleProducts = availableCards;
