@@ -45,7 +45,7 @@
     /* Success rate colors */
     --success-high: 120 60% 50%;
     --success-medium: 45 100% 55%;
-    --success-low: 0 75% 55%;
+    --success-low: 210 75% 55%;
 
     /* Shadows */
     --shadow-gold: 0 10px 30px -10px hsl(43 100% 55% / 0.3);
