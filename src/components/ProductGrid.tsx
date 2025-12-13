@@ -37,11 +37,16 @@ const moneyTransferProducts = [
   { id: 'mt2', provider: 'Western Union', value: 500, price: 70, tier: 'transfer' as const },
   { id: 'mt3', provider: 'MoneyGram', value: 500, price: 70, tier: 'transfer' as const },
   { id: 'mt4', provider: 'Cash App', value: 500, price: 70, tier: 'transfer' as const },
-  // $2500 transfers for $120
-  { id: 'mt5', provider: 'PayPal', value: 2500, price: 120, tier: 'transfer' as const },
-  { id: 'mt6', provider: 'Western Union', value: 2500, price: 120, tier: 'transfer' as const },
-  { id: 'mt7', provider: 'MoneyGram', value: 2500, price: 120, tier: 'transfer' as const },
-  { id: 'mt8', provider: 'Cash App', value: 2500, price: 120, tier: 'transfer' as const },
+  // $1500 transfers for $140
+  { id: 'mt5', provider: 'PayPal', value: 1500, price: 140, tier: 'transfer' as const },
+  { id: 'mt6', provider: 'Western Union', value: 1500, price: 140, tier: 'transfer' as const },
+  { id: 'mt7', provider: 'MoneyGram', value: 1500, price: 140, tier: 'transfer' as const },
+  { id: 'mt8', provider: 'Cash App', value: 1500, price: 140, tier: 'transfer' as const },
+  // $2500 transfers for $199.99
+  { id: 'mt9', provider: 'PayPal', value: 2500, price: 199.99, tier: 'transfer' as const },
+  { id: 'mt10', provider: 'Western Union', value: 2500, price: 199.99, tier: 'transfer' as const },
+  { id: 'mt11', provider: 'MoneyGram', value: 2500, price: 199.99, tier: 'transfer' as const },
+  { id: 'mt12', provider: 'Cash App', value: 2500, price: 199.99, tier: 'transfer' as const },
 ];
 
 export function ProductGrid({ user }: ProductGridProps) {
