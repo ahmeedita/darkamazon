@@ -65,6 +65,46 @@ export const CashAppLogo = ({ className = "w-16 h-16" }: { className?: string })
   </svg>
 );
 
+export const AppleLogo = ({ className = "w-16 h-16" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 100 100" fill="currentColor">
+    <path d="M72.1 55.8c-.1-10.5 8.6-15.6 9-15.8-4.9-7.2-12.5-8.2-15.2-8.3-6.5-.7-12.6 3.8-15.9 3.8-3.3 0-8.3-3.7-13.7-3.6-7 .1-13.5 4.1-17.1 10.4-7.3 12.7-1.9 31.5 5.2 41.8 3.5 5 7.6 10.7 13 10.5 5.2-.2 7.2-3.4 13.5-3.4 6.3 0 8.1 3.4 13.6 3.3 5.6-.1 9.1-5.1 12.6-10.2 4-5.7 5.6-11.3 5.7-11.6-.1-.1-10.9-4.2-11-16.6-.1-10.4 8.5-15.4 8.9-15.7zM62.4 22.4c2.9-3.5 4.8-8.3 4.3-13.2-4.1.2-9.1 2.8-12.1 6.2-2.6 3.1-4.9 8-4.3 12.7 4.6.4 9.3-2.3 12.1-5.7z"/>
+  </svg>
+);
+
+export const SteamLogo = ({ className = "w-16 h-16" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 100 100" fill="none">
+    <circle cx="50" cy="50" r="45" fill="#1B2838"/>
+    <path d="M50 25c-10 0-18 8-18 18 0 2 .3 4 .9 5.8l17.1 7c1-.3 2-.4 3-.4 5.5 0 10 4.5 10 10s-4.5 10-10 10c-.7 0-1.4-.1-2-.2l-10-14.5c0-.1 0-.2-.1-.3 0-6.6 5.4-12 12-12 1.3 0 2.6.2 3.8.6l8.4-3.5c2.6-1.1 5.5.3 6.6 2.9.5 1.3.6 2.7.2 4.1l6.8-2.8c.5-.2.9-.5 1.2-.9.7-1 .6-2.4-.2-3.3l-8.8-11c-1.7-2.1-4.7-2.4-6.8-.7l-14 11.5c-3.5-3.2-8.1-5.2-13.2-5.2zm3 30c-3.3 0-6 2.7-6 6s2.7 6 6 6 6-2.7 6-6-2.7-6-6-6z" fill="#66C0F4"/>
+  </svg>
+);
+
+export const WiseLogo = ({ className = "w-16 h-16" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 120 40" fill="none">
+    <rect width="120" height="40" rx="4" fill="#00B9FF"/>
+    <text x="10" y="28" fontFamily="Arial, sans-serif" fontSize="16" fontWeight="bold" fill="white">
+      Wise
+    </text>
+  </svg>
+);
+
+export const NetellerLogo = ({ className = "w-16 h-16" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 120 40" fill="none">
+    <rect width="120" height="40" rx="4" fill="#80AF20"/>
+    <text x="8" y="28" fontFamily="Arial, sans-serif" fontSize="14" fontWeight="bold" fill="white">
+      Neteller
+    </text>
+  </svg>
+);
+
+export const SkrillLogo = ({ className = "w-16 h-16" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 120 40" fill="none">
+    <rect width="120" height="40" rx="4" fill="#862165"/>
+    <text x="20" y="28" fontFamily="Arial, sans-serif" fontSize="16" fontWeight="bold" fill="white">
+      Skrill
+    </text>
+  </svg>
+);
+
 // Crypto logos
 export const BitcoinLogo = ({ className = "w-6 h-6" }: { className?: string }) => (
   <svg className={className} viewBox="0 0 32 32" fill="none">
