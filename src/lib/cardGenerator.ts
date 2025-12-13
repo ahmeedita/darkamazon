@@ -224,6 +224,8 @@ export function releaseCards(orderId: string): void {
   const reservedCards = getReservedCards();
   const filtered = reservedCards.filter(c => c.orderId !== orderId);
   localStorage.setItem(RESERVED_CARDS_KEY, JSON.stringify(filtered));
+  // Dispatch event to trigger immediate UI refresh
+  window.dispatchEvent(new CustomEvent('cardsReleased'));
 }
 
 export function isCardReserved(cardId: string): boolean {

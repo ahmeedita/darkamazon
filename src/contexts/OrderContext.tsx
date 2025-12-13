@@ -13,7 +13,7 @@ export interface Order {
 
 interface OrderContextType {
   orders: Order[];
-  addOrder: (items: CartItem[], total: number) => void;
+  addOrder: (items: CartItem[], total: number, orderId?: string) => string;
   updateOrderStatus: (id: string, status: 'pending' | 'completed' | 'canceled') => void;
   getFilteredOrders: (filter: 'all' | 'pending' | 'completed' | 'canceled') => Order[];
 }
@@ -59,10 +59,11 @@ export function OrderProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
   }, [orders]);
 
-  const addOrder = (items: CartItem[], total: number) => {
+  const addOrder = (items: CartItem[], total: number, orderId?: string): string => {
     const now = Date.now();
+    const id = orderId || `order_${now}_${Math.random().toString(36).substr(2, 9)}`;
     const newOrder: Order = {
-      id: `order_${now}_${Math.random().toString(36).substr(2, 9)}`,
+      id,
       items,
       total,
       status: 'pending',
@@ -70,6 +71,7 @@ export function OrderProvider({ children }: { children: ReactNode }) {
       expiresAt: now + EXPIRY_TIME,
     };
     setOrders(prev => [newOrder, ...prev]);
+    return id;
   };
 
   const updateOrderStatus = (id: string, status: 'pending' | 'completed' | 'canceled') => {
