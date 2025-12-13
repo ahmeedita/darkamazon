@@ -78,25 +78,43 @@ export function Features() {
         </div>
 
         <div className="mt-16 text-center">
-          <div className="card-premium p-8 max-w-3xl mx-auto">
+          <div className="card-premium p-8 max-w-4xl mx-auto">
             <h3 className="font-display text-2xl font-bold text-foreground mb-4">
               Three Success Rate Tiers
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-              <div className="text-center">
-                <div className="text-3xl font-bold text-success-high mb-2">80%</div>
+              <div className="text-center p-4 rounded-lg bg-success-high/10 border border-success-high/30">
+                <div className="text-3xl font-bold text-success-high mb-2">98%</div>
                 <div className="font-semibold text-foreground mb-1">Premium Tier</div>
-                <div className="text-success-high font-bold">£13</div>
+                <div className="text-success-high font-bold text-xl mb-3">$50</div>
+                <ul className="text-sm text-muted-foreground space-y-1 text-left">
+                  <li>• Highest success rate</li>
+                  <li>• Premium bank cards</li>
+                  <li>• Priority support</li>
+                  <li>• Highest balance cards</li>
+                </ul>
               </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-success-medium mb-2">50%</div>
+              <div className="text-center p-4 rounded-lg bg-success-medium/10 border border-success-medium/30">
+                <div className="text-3xl font-bold text-success-medium mb-2">85%</div>
                 <div className="font-semibold text-foreground mb-1">Standard Tier</div>
-                <div className="text-success-medium font-bold">£10</div>
+                <div className="text-success-medium font-bold text-xl mb-3">$40</div>
+                <ul className="text-sm text-muted-foreground space-y-1 text-left">
+                  <li>• Reliable success rate</li>
+                  <li>• Quality bank cards</li>
+                  <li>• Standard support</li>
+                  <li>• Medium balance cards</li>
+                </ul>
               </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-success-low mb-2">30%</div>
+              <div className="text-center p-4 rounded-lg bg-success-low/10 border border-success-low/30">
+                <div className="text-3xl font-bold text-success-low mb-2">70%</div>
                 <div className="font-semibold text-foreground mb-1">Basic Tier</div>
-                <div className="text-success-low font-bold">£7</div>
+                <div className="text-success-low font-bold text-xl mb-3">$29.99</div>
+                <ul className="text-sm text-muted-foreground space-y-1 text-left">
+                  <li>• Entry-level success rate</li>
+                  <li>• Basic bank cards</li>
+                  <li>• Email support</li>
+                  <li>• Starter balance cards</li>
+                </ul>
               </div>
             </div>
           </div>
