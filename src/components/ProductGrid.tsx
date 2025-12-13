@@ -12,22 +12,22 @@ interface ProductGridProps {
 
 // Gift Cards
 const giftCardProducts = [
-  // $500 Gift Cards for $40
-  { id: 'gc1', brand: 'Amazon', value: 500, price: 40, tier: 'giftcard' as const },
-  { id: 'gc2', brand: 'Target', value: 500, price: 40, tier: 'giftcard' as const },
-  { id: 'gc3', brand: 'eBay', value: 500, price: 40, tier: 'giftcard' as const },
-  // $1000 Gift Cards for $60
-  { id: 'gc4', brand: 'Amazon', value: 1000, price: 60, tier: 'giftcard' as const },
-  { id: 'gc5', brand: 'Target', value: 1000, price: 60, tier: 'giftcard' as const },
-  { id: 'gc6', brand: 'eBay', value: 1000, price: 60, tier: 'giftcard' as const },
-  // $1500 Gift Cards for $79.99
-  { id: 'gc7', brand: 'Amazon', value: 1500, price: 79.99, tier: 'giftcard' as const },
-  { id: 'gc8', brand: 'Target', value: 1500, price: 79.99, tier: 'giftcard' as const },
-  { id: 'gc9', brand: 'eBay', value: 1500, price: 79.99, tier: 'giftcard' as const },
-  // $2000 Gift Cards for $90
-  { id: 'gc10', brand: 'Amazon', value: 2000, price: 90, tier: 'giftcard' as const },
-  { id: 'gc11', brand: 'Target', value: 2000, price: 90, tier: 'giftcard' as const },
-  { id: 'gc12', brand: 'eBay', value: 2000, price: 90, tier: 'giftcard' as const },
+  // $500 Gift Cards for $75
+  { id: 'gc1', brand: 'Amazon', value: 500, price: 75, tier: 'giftcard' as const },
+  { id: 'gc2', brand: 'Target', value: 500, price: 75, tier: 'giftcard' as const },
+  { id: 'gc3', brand: 'eBay', value: 500, price: 75, tier: 'giftcard' as const },
+  // $1000 Gift Cards for $99.99
+  { id: 'gc4', brand: 'Amazon', value: 1000, price: 99.99, tier: 'giftcard' as const },
+  { id: 'gc5', brand: 'Target', value: 1000, price: 99.99, tier: 'giftcard' as const },
+  { id: 'gc6', brand: 'eBay', value: 1000, price: 99.99, tier: 'giftcard' as const },
+  // $1500 Gift Cards for $125
+  { id: 'gc7', brand: 'Amazon', value: 1500, price: 125, tier: 'giftcard' as const },
+  { id: 'gc8', brand: 'Target', value: 1500, price: 125, tier: 'giftcard' as const },
+  { id: 'gc9', brand: 'eBay', value: 1500, price: 125, tier: 'giftcard' as const },
+  // $2000 Gift Cards for $150
+  { id: 'gc10', brand: 'Amazon', value: 2000, price: 150, tier: 'giftcard' as const },
+  { id: 'gc11', brand: 'Target', value: 2000, price: 150, tier: 'giftcard' as const },
+  { id: 'gc12', brand: 'eBay', value: 2000, price: 150, tier: 'giftcard' as const },
 ];
 
 // Money Transfers
