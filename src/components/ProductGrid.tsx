@@ -10,43 +10,96 @@ interface ProductGridProps {
   user: any;
 }
 
-// Gift Cards
+// Gift Cards - USD
 const giftCardProducts = [
-  // $500 Gift Cards for $75
-  { id: 'gc1', brand: 'Amazon', value: 500, price: 75, tier: 'giftcard' as const },
-  { id: 'gc2', brand: 'Target', value: 500, price: 75, tier: 'giftcard' as const },
-  { id: 'gc3', brand: 'eBay', value: 500, price: 75, tier: 'giftcard' as const },
-  // $1000 Gift Cards for $99.99
-  { id: 'gc4', brand: 'Amazon', value: 1000, price: 99.99, tier: 'giftcard' as const },
-  { id: 'gc5', brand: 'Target', value: 1000, price: 99.99, tier: 'giftcard' as const },
-  { id: 'gc6', brand: 'eBay', value: 1000, price: 99.99, tier: 'giftcard' as const },
-  // $1500 Gift Cards for $125
-  { id: 'gc7', brand: 'Amazon', value: 1500, price: 125, tier: 'giftcard' as const },
-  { id: 'gc8', brand: 'Target', value: 1500, price: 125, tier: 'giftcard' as const },
-  { id: 'gc9', brand: 'eBay', value: 1500, price: 125, tier: 'giftcard' as const },
-  // $2000 Gift Cards for $150
-  { id: 'gc10', brand: 'Amazon', value: 2000, price: 150, tier: 'giftcard' as const },
-  { id: 'gc11', brand: 'Target', value: 2000, price: 150, tier: 'giftcard' as const },
-  { id: 'gc12', brand: 'eBay', value: 2000, price: 150, tier: 'giftcard' as const },
+  // Amazon USD
+  { id: 'gc1', brand: 'Amazon', value: 500, price: 75, tier: 'giftcard' as const, currency: 'USD' as const },
+  { id: 'gc4', brand: 'Amazon', value: 1000, price: 99.99, tier: 'giftcard' as const, currency: 'USD' as const },
+  { id: 'gc7', brand: 'Amazon', value: 1500, price: 125, tier: 'giftcard' as const, currency: 'USD' as const },
+  { id: 'gc10', brand: 'Amazon', value: 2000, price: 150, tier: 'giftcard' as const, currency: 'USD' as const },
+  // Amazon EUR
+  { id: 'gc-eur1', brand: 'Amazon', value: 500, price: 75, tier: 'giftcard' as const, currency: 'EUR' as const },
+  { id: 'gc-eur2', brand: 'Amazon', value: 1000, price: 99.99, tier: 'giftcard' as const, currency: 'EUR' as const },
+  { id: 'gc-eur3', brand: 'Amazon', value: 1500, price: 125, tier: 'giftcard' as const, currency: 'EUR' as const },
+  { id: 'gc-eur4', brand: 'Amazon', value: 2000, price: 150, tier: 'giftcard' as const, currency: 'EUR' as const },
+  // Target USD
+  { id: 'gc2', brand: 'Target', value: 500, price: 75, tier: 'giftcard' as const, currency: 'USD' as const },
+  { id: 'gc5', brand: 'Target', value: 1000, price: 99.99, tier: 'giftcard' as const, currency: 'USD' as const },
+  { id: 'gc8', brand: 'Target', value: 1500, price: 125, tier: 'giftcard' as const, currency: 'USD' as const },
+  { id: 'gc11', brand: 'Target', value: 2000, price: 150, tier: 'giftcard' as const, currency: 'USD' as const },
+  // eBay USD
+  { id: 'gc3', brand: 'eBay', value: 500, price: 75, tier: 'giftcard' as const, currency: 'USD' as const },
+  { id: 'gc6', brand: 'eBay', value: 1000, price: 99.99, tier: 'giftcard' as const, currency: 'USD' as const },
+  { id: 'gc9', brand: 'eBay', value: 1500, price: 125, tier: 'giftcard' as const, currency: 'USD' as const },
+  { id: 'gc12', brand: 'eBay', value: 2000, price: 150, tier: 'giftcard' as const, currency: 'USD' as const },
+  // Apple USD
+  { id: 'gc-apple1', brand: 'Apple', value: 500, price: 75, tier: 'giftcard' as const, currency: 'USD' as const },
+  { id: 'gc-apple2', brand: 'Apple', value: 1000, price: 99.99, tier: 'giftcard' as const, currency: 'USD' as const },
+  { id: 'gc-apple3', brand: 'Apple', value: 1500, price: 125, tier: 'giftcard' as const, currency: 'USD' as const },
+  { id: 'gc-apple4', brand: 'Apple', value: 2000, price: 150, tier: 'giftcard' as const, currency: 'USD' as const },
+  // Apple EUR
+  { id: 'gc-apple-eur1', brand: 'Apple', value: 500, price: 75, tier: 'giftcard' as const, currency: 'EUR' as const },
+  { id: 'gc-apple-eur2', brand: 'Apple', value: 1000, price: 99.99, tier: 'giftcard' as const, currency: 'EUR' as const },
+  { id: 'gc-apple-eur3', brand: 'Apple', value: 1500, price: 125, tier: 'giftcard' as const, currency: 'EUR' as const },
+  { id: 'gc-apple-eur4', brand: 'Apple', value: 2000, price: 150, tier: 'giftcard' as const, currency: 'EUR' as const },
+  // Steam USD
+  { id: 'gc-steam1', brand: 'Steam', value: 500, price: 75, tier: 'giftcard' as const, currency: 'USD' as const },
+  { id: 'gc-steam2', brand: 'Steam', value: 1000, price: 99.99, tier: 'giftcard' as const, currency: 'USD' as const },
+  { id: 'gc-steam3', brand: 'Steam', value: 1500, price: 125, tier: 'giftcard' as const, currency: 'USD' as const },
+  { id: 'gc-steam4', brand: 'Steam', value: 2000, price: 150, tier: 'giftcard' as const, currency: 'USD' as const },
+  // Steam EUR
+  { id: 'gc-steam-eur1', brand: 'Steam', value: 500, price: 75, tier: 'giftcard' as const, currency: 'EUR' as const },
+  { id: 'gc-steam-eur2', brand: 'Steam', value: 1000, price: 99.99, tier: 'giftcard' as const, currency: 'EUR' as const },
+  { id: 'gc-steam-eur3', brand: 'Steam', value: 1500, price: 125, tier: 'giftcard' as const, currency: 'EUR' as const },
+  { id: 'gc-steam-eur4', brand: 'Steam', value: 2000, price: 150, tier: 'giftcard' as const, currency: 'EUR' as const },
 ];
 
 // Money Transfers
 const moneyTransferProducts = [
-  // $500 transfers for $70
-  { id: 'mt1', provider: 'PayPal', value: 500, price: 70, tier: 'transfer' as const },
-  { id: 'mt2', provider: 'Western Union', value: 500, price: 70, tier: 'transfer' as const },
-  { id: 'mt3', provider: 'MoneyGram', value: 500, price: 70, tier: 'transfer' as const },
-  { id: 'mt4', provider: 'Cash App', value: 500, price: 70, tier: 'transfer' as const },
-  // $1500 transfers for $140
-  { id: 'mt5', provider: 'PayPal', value: 1500, price: 140, tier: 'transfer' as const },
-  { id: 'mt6', provider: 'Western Union', value: 1500, price: 140, tier: 'transfer' as const },
-  { id: 'mt7', provider: 'MoneyGram', value: 1500, price: 140, tier: 'transfer' as const },
-  { id: 'mt8', provider: 'Cash App', value: 1500, price: 140, tier: 'transfer' as const },
-  // $2500 transfers for $199.99
-  { id: 'mt9', provider: 'PayPal', value: 2500, price: 199.99, tier: 'transfer' as const },
-  { id: 'mt10', provider: 'Western Union', value: 2500, price: 199.99, tier: 'transfer' as const },
-  { id: 'mt11', provider: 'MoneyGram', value: 2500, price: 199.99, tier: 'transfer' as const },
-  { id: 'mt12', provider: 'Cash App', value: 2500, price: 199.99, tier: 'transfer' as const },
+  // PayPal USD
+  { id: 'mt1', provider: 'PayPal', value: 500, price: 70, tier: 'transfer' as const, currency: 'USD' as const },
+  { id: 'mt5', provider: 'PayPal', value: 1500, price: 140, tier: 'transfer' as const, currency: 'USD' as const },
+  { id: 'mt9', provider: 'PayPal', value: 2500, price: 199.99, tier: 'transfer' as const, currency: 'USD' as const },
+  // PayPal EUR
+  { id: 'mt-paypal-eur1', provider: 'PayPal', value: 500, price: 70, tier: 'transfer' as const, currency: 'EUR' as const },
+  { id: 'mt-paypal-eur2', provider: 'PayPal', value: 1500, price: 140, tier: 'transfer' as const, currency: 'EUR' as const },
+  { id: 'mt-paypal-eur3', provider: 'PayPal', value: 2500, price: 199.99, tier: 'transfer' as const, currency: 'EUR' as const },
+  // Western Union USD
+  { id: 'mt2', provider: 'Western Union', value: 500, price: 70, tier: 'transfer' as const, currency: 'USD' as const },
+  { id: 'mt6', provider: 'Western Union', value: 1500, price: 140, tier: 'transfer' as const, currency: 'USD' as const },
+  { id: 'mt10', provider: 'Western Union', value: 2500, price: 199.99, tier: 'transfer' as const, currency: 'USD' as const },
+  // MoneyGram USD
+  { id: 'mt3', provider: 'MoneyGram', value: 500, price: 70, tier: 'transfer' as const, currency: 'USD' as const },
+  { id: 'mt7', provider: 'MoneyGram', value: 1500, price: 140, tier: 'transfer' as const, currency: 'USD' as const },
+  { id: 'mt11', provider: 'MoneyGram', value: 2500, price: 199.99, tier: 'transfer' as const, currency: 'USD' as const },
+  // Cash App USD
+  { id: 'mt4', provider: 'Cash App', value: 500, price: 70, tier: 'transfer' as const, currency: 'USD' as const },
+  { id: 'mt8', provider: 'Cash App', value: 1500, price: 140, tier: 'transfer' as const, currency: 'USD' as const },
+  { id: 'mt12', provider: 'Cash App', value: 2500, price: 199.99, tier: 'transfer' as const, currency: 'USD' as const },
+  // Wise USD
+  { id: 'mt-wise1', provider: 'Wise', value: 500, price: 70, tier: 'transfer' as const, currency: 'USD' as const },
+  { id: 'mt-wise2', provider: 'Wise', value: 1500, price: 140, tier: 'transfer' as const, currency: 'USD' as const },
+  { id: 'mt-wise3', provider: 'Wise', value: 2500, price: 199.99, tier: 'transfer' as const, currency: 'USD' as const },
+  // Wise EUR
+  { id: 'mt-wise-eur1', provider: 'Wise', value: 500, price: 70, tier: 'transfer' as const, currency: 'EUR' as const },
+  { id: 'mt-wise-eur2', provider: 'Wise', value: 1500, price: 140, tier: 'transfer' as const, currency: 'EUR' as const },
+  { id: 'mt-wise-eur3', provider: 'Wise', value: 2500, price: 199.99, tier: 'transfer' as const, currency: 'EUR' as const },
+  // Neteller USD
+  { id: 'mt-neteller1', provider: 'Neteller', value: 500, price: 70, tier: 'transfer' as const, currency: 'USD' as const },
+  { id: 'mt-neteller2', provider: 'Neteller', value: 1500, price: 140, tier: 'transfer' as const, currency: 'USD' as const },
+  { id: 'mt-neteller3', provider: 'Neteller', value: 2500, price: 199.99, tier: 'transfer' as const, currency: 'USD' as const },
+  // Neteller EUR
+  { id: 'mt-neteller-eur1', provider: 'Neteller', value: 500, price: 70, tier: 'transfer' as const, currency: 'EUR' as const },
+  { id: 'mt-neteller-eur2', provider: 'Neteller', value: 1500, price: 140, tier: 'transfer' as const, currency: 'EUR' as const },
+  { id: 'mt-neteller-eur3', provider: 'Neteller', value: 2500, price: 199.99, tier: 'transfer' as const, currency: 'EUR' as const },
+  // Skrill USD
+  { id: 'mt-skrill1', provider: 'Skrill', value: 500, price: 70, tier: 'transfer' as const, currency: 'USD' as const },
+  { id: 'mt-skrill2', provider: 'Skrill', value: 1500, price: 140, tier: 'transfer' as const, currency: 'USD' as const },
+  { id: 'mt-skrill3', provider: 'Skrill', value: 2500, price: 199.99, tier: 'transfer' as const, currency: 'USD' as const },
+  // Skrill EUR
+  { id: 'mt-skrill-eur1', provider: 'Skrill', value: 500, price: 70, tier: 'transfer' as const, currency: 'EUR' as const },
+  { id: 'mt-skrill-eur2', provider: 'Skrill', value: 1500, price: 140, tier: 'transfer' as const, currency: 'EUR' as const },
+  { id: 'mt-skrill-eur3', provider: 'Skrill', value: 2500, price: 199.99, tier: 'transfer' as const, currency: 'EUR' as const },
 ];
 
 export function ProductGrid({ user }: ProductGridProps) {
