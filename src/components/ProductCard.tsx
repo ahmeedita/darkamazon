@@ -24,7 +24,9 @@ interface ProductCardProps {
 
 export function ProductCard({ product }: ProductCardProps) {
   const [showDetails, setShowDetails] = useState(false);
-  const { addItem } = useCart();
+  const { addItem, items } = useCart();
+
+  const isInCart = items.some(item => item.id === product.id);
 
   const getTierColor = (tier: string) => {
     switch (tier) {
@@ -54,6 +56,10 @@ export function ProductCard({ product }: ProductCardProps) {
   };
 
   const handleAddToCart = () => {
+    if (isInCart) {
+      toast.error('This card is already in your cart');
+      return;
+    }
     const price = getPrice(product.tier);
     addItem({
       id: product.id,
@@ -132,10 +138,11 @@ export function ProductCard({ product }: ProductCardProps) {
 
       <Button
         onClick={handleAddToCart}
-        className="w-full btn-gold text-lg py-3"
+        disabled={isInCart}
+        className={`w-full text-lg py-3 ${isInCart ? 'bg-muted text-muted-foreground' : 'btn-gold'}`}
       >
         <ShoppingCart className="w-5 h-5 mr-2" />
-        Add to Cart
+        {isInCart ? 'In Cart' : 'Add to Cart'}
       </Button>
 
       <p className="text-xs text-muted-foreground text-center">
