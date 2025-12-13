@@ -77,8 +77,8 @@ export function CryptoPaymentModal({
       const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
       
-      // Assuming 24 hour expiry
-      const totalTime = 24 * 60 * 60 * 1000;
+      // 2 hour expiry
+      const totalTime = 2 * 60 * 60 * 1000;
       const percent = Math.min(100, (remaining / totalTime) * 100);
       
       setTimeRemaining(`${hours}h ${minutes}m ${seconds}s`);

@@ -9,6 +9,7 @@ import { useCart } from '@/contexts/CartContext';
 import { useOrders } from '@/contexts/OrderContext';
 import { toast } from 'sonner';
 import { CryptoPaymentModal } from './CryptoPaymentModal';
+import { reserveCards } from '@/lib/cardGenerator';
 
 export function Cart() {
   const { items, removeItem, clearCart, total, itemCount } = useCart();
@@ -41,6 +42,13 @@ export function Cart() {
     // Generate order ID
     const orderId = `order_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     setCurrentOrderId(orderId);
+    
+    // Reserve credit cards when proceeding to checkout
+    const cardItems = items.filter(item => item.type === 'card');
+    if (cardItems.length > 0) {
+      const cardIds = cardItems.map(item => item.id);
+      reserveCards(cardIds, orderId);
+    }
     
     // Create order with pending status
     addOrder([...items], total);

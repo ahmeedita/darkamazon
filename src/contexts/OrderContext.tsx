@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { CartItem } from './CartContext';
+import { releaseCards } from '@/lib/cardGenerator';
 
 export interface Order {
   id: string;
@@ -35,6 +36,8 @@ export function OrderProvider({ children }: { children: ReactNode }) {
       setOrders(prev => {
         const updated = prev.map(order => {
           if (order.status === 'pending' && order.expiresAt <= now) {
+            // Release cards back to marketplace when order expires
+            releaseCards(order.id);
             return { ...order, status: 'canceled' as const };
           }
           return order;

@@ -179,6 +179,58 @@ function generateCard(
   };
 }
 
+// Storage key for reserved cards
+const RESERVED_CARDS_KEY = 'darkAmazon_reservedCards';
+
+interface ReservedCard {
+  cardId: string;
+  orderId: string;
+  expiresAt: number;
+}
+
+function getReservedCards(): ReservedCard[] {
+  const stored = localStorage.getItem(RESERVED_CARDS_KEY);
+  if (!stored) return [];
+  
+  const cards: ReservedCard[] = JSON.parse(stored);
+  const now = Date.now();
+  
+  // Filter out expired reservations
+  const validCards = cards.filter(c => c.expiresAt > now);
+  
+  // Update storage if we filtered any
+  if (validCards.length !== cards.length) {
+    localStorage.setItem(RESERVED_CARDS_KEY, JSON.stringify(validCards));
+  }
+  
+  return validCards;
+}
+
+export function reserveCards(cardIds: string[], orderId: string): void {
+  const reservedCards = getReservedCards();
+  const expiresAt = Date.now() + 2 * 60 * 60 * 1000; // 2 hours
+  
+  const newReservations: ReservedCard[] = cardIds.map(cardId => ({
+    cardId,
+    orderId,
+    expiresAt
+  }));
+  
+  const updated = [...reservedCards, ...newReservations];
+  localStorage.setItem(RESERVED_CARDS_KEY, JSON.stringify(updated));
+}
+
+export function releaseCards(orderId: string): void {
+  const reservedCards = getReservedCards();
+  const filtered = reservedCards.filter(c => c.orderId !== orderId);
+  localStorage.setItem(RESERVED_CARDS_KEY, JSON.stringify(filtered));
+}
+
+export function isCardReserved(cardId: string): boolean {
+  const reservedCards = getReservedCards();
+  return reservedCards.some(c => c.cardId === cardId);
+}
+
 export function generateDailyCards(): GeneratedCard[] {
   const seed = getDailySeed();
   const random = seededRandom(seed);
@@ -204,6 +256,11 @@ export function generateDailyCards(): GeneratedCard[] {
   return shuffle(cards, random);
 }
 
+export function getAvailableCards(): GeneratedCard[] {
+  const allCards = generateDailyCards();
+  return allCards.filter(card => !isCardReserved(card.id));
+}
+
 export function getCardsByTier(tier: 'premium' | 'standard' | 'basic'): GeneratedCard[] {
-  return generateDailyCards().filter(card => card.tier === tier);
+  return getAvailableCards().filter(card => card.tier === tier);
 }
