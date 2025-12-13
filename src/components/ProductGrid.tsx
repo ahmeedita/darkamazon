@@ -1,10 +1,10 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { ProductCard } from './ProductCard';
 import { GiftCard } from './GiftCard';
 import { MoneyTransfer } from './MoneyTransfer';
 import { Button } from '@/components/ui/button';
 import { Filter } from 'lucide-react';
-import { generateDailyCards } from '@/lib/cardGenerator';
+import { getAvailableCards } from '@/lib/cardGenerator';
 
 interface ProductGridProps {
   user: any;
@@ -46,9 +46,17 @@ const moneyTransferProducts = [
 
 export function ProductGrid({ user }: ProductGridProps) {
   const [filter, setFilter] = useState<'all' | 'premium' | 'standard' | 'basic' | 'giftcard' | 'transfer'>('all');
+  const [availableCards, setAvailableCards] = useState(() => getAvailableCards());
 
-  // Generate cards once per day using memoization
-  const sampleProducts = useMemo(() => generateDailyCards(), []);
+  // Refresh available cards every 5 seconds to pick up reservation changes
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setAvailableCards(getAvailableCards());
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const sampleProducts = availableCards;
 
   const filteredProducts = filter === 'all' 
     ? sampleProducts 
