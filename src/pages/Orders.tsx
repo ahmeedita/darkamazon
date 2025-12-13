@@ -3,9 +3,11 @@ import { Link } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Crown, ArrowLeft, Clock, CheckCircle, XCircle, Package, CreditCard } from 'lucide-react';
+import { Crown, ArrowLeft, Clock, CheckCircle, XCircle, Package, CreditCard, X } from 'lucide-react';
 import { useOrders, Order } from '@/contexts/OrderContext';
 import { CryptoPaymentModal } from '@/components/CryptoPaymentModal';
+import { releaseCards } from '@/lib/cardGenerator';
+import { toast } from 'sonner';
 
 type FilterType = 'all' | 'pending' | 'completed' | 'canceled';
 
@@ -16,7 +18,7 @@ interface PaymentDetails {
 }
 
 export default function Orders() {
-  const { getFilteredOrders } = useOrders();
+  const { getFilteredOrders, updateOrderStatus } = useOrders();
   const [filter, setFilter] = useState<FilterType>('all');
   const [, setTick] = useState(0);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -78,6 +80,14 @@ export default function Orders() {
       setPaymentDetails(null);
     }
     setSelectedOrder(order);
+  };
+
+  const handleCancelOrder = (order: Order, e: React.MouseEvent) => {
+    e.stopPropagation();
+    releaseCards(order.id);
+    updateOrderStatus(order.id, 'canceled');
+    localStorage.removeItem(`payment_${order.id}`);
+    toast.success('Order canceled successfully');
   };
 
   const filterButtons: { key: FilterType; label: string }[] = [
@@ -195,6 +205,15 @@ export default function Orders() {
                     {order.status === 'pending' && (
                       <div className="text-right">
                         <div className="flex items-center gap-2 mb-1">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            className="text-xs border-red-500/50 text-red-500 hover:bg-red-500/10"
+                            onClick={(e) => handleCancelOrder(order, e)}
+                          >
+                            <X className="w-3 h-3 mr-1" />
+                            Cancel
+                          </Button>
                           <Button 
                             size="sm" 
                             className="btn-gold text-xs"
