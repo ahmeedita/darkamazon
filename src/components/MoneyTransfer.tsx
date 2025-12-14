@@ -79,9 +79,7 @@ export function MoneyTransfer({ product }: MoneyTransferProps) {
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <Banknote className={`w-4 h-4 md:w-5 md:h-5 ${getProviderColor(product.provider)}`} />
-          <Badge className="bg-gradient-to-r from-primary/20 to-accent/20 text-primary border-primary/30 text-xs">
-            Money Transfer
-          </Badge>
+          <span className="text-sm font-medium text-muted-foreground">Transfer</span>
           <Badge variant="outline" className="text-xs">
             {currency}
           </Badge>

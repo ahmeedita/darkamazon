@@ -62,9 +62,7 @@ export function GiftCard({ product }: GiftCardProps) {
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <Gift className={`w-4 h-4 md:w-5 md:h-5 ${getBrandColor(product.brand)}`} />
-          <Badge className="bg-gradient-to-r from-primary/20 to-accent/20 text-primary border-primary/30 text-xs">
-            Gift Card
-          </Badge>
+          <span className="text-sm font-medium text-muted-foreground">Gift Card</span>
           <Badge variant="outline" className="text-xs">
             {currency}
           </Badge>
