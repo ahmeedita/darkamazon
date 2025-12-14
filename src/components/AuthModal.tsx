@@ -58,6 +58,7 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
   const handleConfirmPhrase = () => {
     if (pendingUser) {
       localStorage.setItem('darkAmazon_currentUser', JSON.stringify(pendingUser));
+      window.dispatchEvent(new Event('userChanged'));
       onSuccess(pendingUser);
       toast({
         title: 'Account created!',
@@ -84,6 +85,7 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
           });
         } else {
           localStorage.setItem('darkAmazon_currentUser', JSON.stringify(result.user));
+          window.dispatchEvent(new Event('userChanged'));
           onSuccess(result.user);
           toast({
             title: 'Welcome back!',
@@ -145,6 +147,7 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
           });
         } else {
           localStorage.setItem('darkAmazon_currentUser', JSON.stringify(result.user));
+          window.dispatchEvent(new Event('userChanged'));
           onSuccess(result.user);
           toast({
             title: 'Account recovered!',
