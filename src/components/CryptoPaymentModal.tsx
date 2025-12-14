@@ -96,6 +96,13 @@ export function CryptoPaymentModal({
     setPaymentAddress(null);
 
     try {
+      // Get fresh session to ensure valid token
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !session) {
+        throw new Error('Please log in to make a payment');
+      }
+
       const { data, error } = await supabase.functions.invoke('create-crypto-payment', {
         body: { symbol, orderId, amount: total, deliveryEmail, recipientEmail },
       });
@@ -120,7 +127,7 @@ export function CryptoPaymentModal({
       }
     } catch (error: any) {
       console.error('Payment error:', error);
-      toast.error('Failed to generate payment address');
+      toast.error(error.message || 'Failed to generate payment address');
       setSelectedCrypto(null);
     } finally {
       setIsLoading(false);
