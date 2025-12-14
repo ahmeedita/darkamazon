@@ -3,44 +3,41 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Lock, User, Eye, EyeOff, KeyRound, AlertTriangle, Copy, Check } from 'lucide-react';
+import { Lock, Mail, User, Eye, EyeOff, AlertTriangle, Copy, Check } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { registerUser, loginUser, recoverAccount, UserProfile } from '@/lib/auth';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: (user: UserProfile) => void;
+  onSuccess: () => void;
 }
 
-type AuthMode = 'login' | 'signup' | 'recover' | 'showPhrase';
+type AuthMode = 'login' | 'signup' | 'showPhrase';
 
 export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
   const [mode, setMode] = useState<AuthMode>('login');
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
+    email: '',
     username: '',
     password: '',
     confirmPassword: '',
-    backupPhrase: '',
-    newPassword: '',
   });
   const [loading, setLoading] = useState(false);
   const [generatedPhrase, setGeneratedPhrase] = useState('');
-  const [pendingUser, setPendingUser] = useState<UserProfile | null>(null);
   const [copied, setCopied] = useState(false);
   const { toast } = useToast();
+  const { signUp, signIn } = useAuth();
 
   const resetForm = () => {
     setFormData({
+      email: '',
       username: '',
       password: '',
       confirmPassword: '',
-      backupPhrase: '',
-      newPassword: '',
     });
     setGeneratedPhrase('');
-    setPendingUser(null);
     setCopied(false);
   };
 
@@ -56,18 +53,14 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
   };
 
   const handleConfirmPhrase = () => {
-    if (pendingUser) {
-      localStorage.setItem('darkAmazon_currentUser', JSON.stringify(pendingUser));
-      window.dispatchEvent(new Event('userChanged'));
-      onSuccess(pendingUser);
-      toast({
-        title: 'Account created!',
-        description: 'Welcome to DARK AMAZON premium marketplace',
-      });
-      onClose();
-      resetForm();
-      setMode('login');
-    }
+    toast({
+      title: 'Account created!',
+      description: 'Welcome to DARK AMAZON premium marketplace',
+    });
+    onSuccess();
+    onClose();
+    resetForm();
+    setMode('login');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -76,21 +69,19 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
 
     try {
       if (mode === 'login') {
-        const result = await loginUser(formData.username, formData.password);
-        if ('error' in result) {
+        const result = await signIn(formData.email, formData.password);
+        if (result.error) {
           toast({
             title: 'Login failed',
             description: result.error,
             variant: 'destructive',
           });
         } else {
-          localStorage.setItem('darkAmazon_currentUser', JSON.stringify(result.user));
-          window.dispatchEvent(new Event('userChanged'));
-          onSuccess(result.user);
           toast({
             title: 'Welcome back!',
             description: 'Successfully logged in to DARK AMAZON',
           });
+          onSuccess();
           onClose();
           resetForm();
         }
@@ -115,47 +106,26 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
           return;
         }
 
-        const result = await registerUser(formData.username, formData.password);
-        if ('error' in result) {
+        if (!formData.username.trim()) {
           toast({
-            title: 'Registration failed',
-            description: result.error,
-            variant: 'destructive',
-          });
-        } else {
-          setGeneratedPhrase(result.backupPhrase);
-          setPendingUser(result.user);
-          setMode('showPhrase');
-        }
-      } else if (mode === 'recover') {
-        if (formData.newPassword.length < 6) {
-          toast({
-            title: 'Password too short',
-            description: 'Password must be at least 6 characters',
+            title: 'Username required',
+            description: 'Please enter a username',
             variant: 'destructive',
           });
           setLoading(false);
           return;
         }
 
-        const result = await recoverAccount(formData.backupPhrase, formData.newPassword);
-        if ('error' in result) {
+        const result = await signUp(formData.email, formData.password, formData.username);
+        if (result.error) {
           toast({
-            title: 'Recovery failed',
+            title: 'Registration failed',
             description: result.error,
             variant: 'destructive',
           });
-        } else {
-          localStorage.setItem('darkAmazon_currentUser', JSON.stringify(result.user));
-          window.dispatchEvent(new Event('userChanged'));
-          onSuccess(result.user);
-          toast({
-            title: 'Account recovered!',
-            description: 'Your password has been reset successfully',
-          });
-          onClose();
-          resetForm();
-          setMode('login');
+        } else if (result.backupPhrase) {
+          setGeneratedPhrase(result.backupPhrase);
+          setMode('showPhrase');
         }
       }
     } catch (error) {
@@ -177,7 +147,7 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
           <div className="space-y-2">
             <p className="text-sm font-medium text-destructive">Save your recovery phrase!</p>
             <p className="text-xs text-muted-foreground">
-              This is the ONLY way to recover your account if you forget your password or username. 
+              This is the ONLY way to recover your account if you forget your password. 
               Write it down and keep it safe. We cannot recover your account without it.
             </p>
           </div>
@@ -233,17 +203,17 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
 
       <div className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="username" className="text-foreground font-medium">
-            Username
+          <Label htmlFor="email" className="text-foreground font-medium">
+            Email
           </Label>
           <div className="relative">
-            <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              id="username"
-              type="text"
-              placeholder="Enter your username"
-              value={formData.username}
-              onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+              id="email"
+              type="email"
+              placeholder="Enter your email"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               className="pl-10 input-premium"
               required
             />
@@ -292,13 +262,6 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
         >
           Don't have an account? Sign up
         </button>
-        <button
-          type="button"
-          onClick={() => handleModeChange('recover')}
-          className="text-muted-foreground hover:text-foreground transition-colors text-xs"
-        >
-          Forgot username or password? Recover account
-        </button>
       </div>
     </form>
   );
@@ -312,6 +275,24 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
       </div>
 
       <div className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="signup-email" className="text-foreground font-medium">
+            Email
+          </Label>
+          <div className="relative">
+            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              id="signup-email"
+              type="email"
+              placeholder="Enter your email"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              className="pl-10 input-premium"
+              required
+            />
+          </div>
+        </div>
+
         <div className="space-y-2">
           <Label htmlFor="signup-username" className="text-foreground font-medium">
             Username
@@ -395,84 +376,10 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
     </form>
   );
 
-  const renderRecoverForm = () => (
-    <form onSubmit={handleSubmit} className="space-y-6 mt-6">
-      <div className="p-4 bg-card border border-border rounded-lg">
-        <div className="flex items-start gap-3">
-          <KeyRound className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-          <p className="text-sm text-muted-foreground">
-            Enter your 12-word recovery phrase and set a new password to recover your account.
-          </p>
-        </div>
-      </div>
-
-      <div className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="backup-phrase" className="text-foreground font-medium">
-            Recovery Phrase
-          </Label>
-          <textarea
-            id="backup-phrase"
-            placeholder="Enter your 12-word recovery phrase"
-            value={formData.backupPhrase}
-            onChange={(e) => setFormData({ ...formData, backupPhrase: e.target.value })}
-            className="w-full h-24 px-3 py-2 bg-card border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none text-sm"
-            required
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="new-password" className="text-foreground font-medium">
-            New Password
-          </Label>
-          <div className="relative">
-            <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              id="new-password"
-              type={showPassword ? 'text' : 'password'}
-              placeholder="Create a new password (min 6 characters)"
-              value={formData.newPassword}
-              onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
-              className="pl-10 pr-10 input-premium"
-              required
-              minLength={6}
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
-            >
-              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <Button
-        type="submit"
-        disabled={loading}
-        className="w-full btn-gold text-lg py-6"
-      >
-        {loading ? <div className="spinner-gold" /> : 'Recover Account'}
-      </Button>
-
-      <div className="text-center">
-        <button
-          type="button"
-          onClick={() => handleModeChange('login')}
-          className="text-primary hover:text-accent transition-colors font-medium text-sm"
-        >
-          Back to login
-        </button>
-      </div>
-    </form>
-  );
-
   const getTitle = () => {
     switch (mode) {
       case 'login': return 'Welcome Back';
       case 'signup': return 'Join DARK AMAZON';
-      case 'recover': return 'Recover Account';
       case 'showPhrase': return 'Save Your Recovery Phrase';
     }
   };
@@ -488,7 +395,6 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
 
         {mode === 'login' && renderLoginForm()}
         {mode === 'signup' && renderSignupForm()}
-        {mode === 'recover' && renderRecoverForm()}
         {mode === 'showPhrase' && renderShowPhrase()}
       </DialogContent>
     </Dialog>
