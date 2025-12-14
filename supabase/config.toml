@@ -1,4 +1,4 @@
 project_id = "qsluscnuexqmbwwikeza"
 
 [functions.create-crypto-payment]
-verify_jwt = false
+verify_jwt = true
