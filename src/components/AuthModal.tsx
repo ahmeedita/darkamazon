@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Lock, Mail, User, Eye, EyeOff } from 'lucide-react';
+import { Lock, User, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -13,24 +13,22 @@ interface AuthModalProps {
   onSuccess: () => void;
 }
 
-type AuthMode = 'login' | 'signup' | 'forgotPassword';
+type AuthMode = 'login' | 'signup';
 
 export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
   const [mode, setMode] = useState<AuthMode>('login');
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
-    email: '',
     username: '',
     password: '',
     confirmPassword: '',
   });
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
-  const { signUp, signIn, resetPassword } = useAuth();
+  const { signUp, signIn } = useAuth();
 
   const resetForm = () => {
     setFormData({
-      email: '',
       username: '',
       password: '',
       confirmPassword: '',
@@ -48,7 +46,17 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
 
     try {
       if (mode === 'login') {
-        const result = await signIn(formData.email, formData.password);
+        if (!formData.username.trim()) {
+          toast({
+            title: 'Username required',
+            description: 'Please enter your username',
+            variant: 'destructive',
+          });
+          setLoading(false);
+          return;
+        }
+
+        const result = await signIn(formData.username, formData.password);
         if (result.error) {
           toast({
             title: 'Login failed',
@@ -95,7 +103,7 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
           return;
         }
 
-        const result = await signUp(formData.email, formData.password, formData.username);
+        const result = await signUp(formData.username, formData.password);
         if (result.error) {
           toast({
             title: 'Registration failed',
@@ -110,21 +118,6 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
           onSuccess();
           onClose();
           resetForm();
-        }
-      } else if (mode === 'forgotPassword') {
-        const result = await resetPassword(formData.email);
-        if (result.error) {
-          toast({
-            title: 'Reset failed',
-            description: result.error,
-            variant: 'destructive',
-          });
-        } else {
-          toast({
-            title: 'Check your email',
-            description: 'We sent you a password reset link',
-          });
-          handleModeChange('login');
         }
       }
     } catch (error) {
@@ -148,17 +141,17 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
 
       <div className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="email" className="text-foreground font-medium">
-            Email
+          <Label htmlFor="username" className="text-foreground font-medium">
+            Username
           </Label>
           <div className="relative">
-            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              id="email"
-              type="email"
-              placeholder="Enter your email"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              id="username"
+              type="text"
+              placeholder="Enter your username"
+              value={formData.username}
+              onChange={(e) => setFormData({ ...formData, username: e.target.value })}
               className="pl-10 input-premium"
               required
             />
@@ -199,20 +192,13 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
         {loading ? <div className="spinner-gold" /> : 'Sign In'}
       </Button>
 
-      <div className="flex flex-col items-center gap-2">
+      <div className="text-center">
         <button
           type="button"
           onClick={() => handleModeChange('signup')}
           className="text-primary hover:text-accent transition-colors font-medium text-sm"
         >
           Don't have an account? Sign up
-        </button>
-        <button
-          type="button"
-          onClick={() => handleModeChange('forgotPassword')}
-          className="text-muted-foreground hover:text-foreground transition-colors text-xs"
-        >
-          Forgot password?
         </button>
       </div>
     </form>
@@ -227,24 +213,6 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
       </div>
 
       <div className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="signup-email" className="text-foreground font-medium">
-            Email
-          </Label>
-          <div className="relative">
-            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              id="signup-email"
-              type="email"
-              placeholder="Enter your email"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="pl-10 input-premium"
-              required
-            />
-          </div>
-        </div>
-
         <div className="space-y-2">
           <Label htmlFor="signup-username" className="text-foreground font-medium">
             Username
@@ -328,57 +296,10 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
     </form>
   );
 
-  const renderForgotPasswordForm = () => (
-    <form onSubmit={handleSubmit} className="space-y-6 mt-6">
-      <div className="p-4 bg-card border border-border rounded-lg">
-        <p className="text-sm text-muted-foreground">
-          Enter your email address and we'll send you a link to reset your password.
-        </p>
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="reset-email" className="text-foreground font-medium">
-          Email
-        </Label>
-        <div className="relative">
-          <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            id="reset-email"
-            type="email"
-            placeholder="Enter your email"
-            value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            className="pl-10 input-premium"
-            required
-          />
-        </div>
-      </div>
-
-      <Button
-        type="submit"
-        disabled={loading}
-        className="w-full btn-gold text-lg py-6"
-      >
-        {loading ? <div className="spinner-gold" /> : 'Send Reset Link'}
-      </Button>
-
-      <div className="text-center">
-        <button
-          type="button"
-          onClick={() => handleModeChange('login')}
-          className="text-primary hover:text-accent transition-colors font-medium text-sm"
-        >
-          Back to login
-        </button>
-      </div>
-    </form>
-  );
-
   const getTitle = () => {
     switch (mode) {
       case 'login': return 'Welcome Back';
       case 'signup': return 'Join DARK AMAZON';
-      case 'forgotPassword': return 'Reset Password';
     }
   };
 
@@ -393,7 +314,6 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
 
         {mode === 'login' && renderLoginForm()}
         {mode === 'signup' && renderSignupForm()}
-        {mode === 'forgotPassword' && renderForgotPasswordForm()}
       </DialogContent>
     </Dialog>
   );
