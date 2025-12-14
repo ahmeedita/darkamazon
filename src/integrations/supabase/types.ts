@@ -14,13 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          backup_phrase: string
+          created_at: string
+          id: string
+          last_active_at: string
+          password_hash: string
+          username: string
+        }
+        Insert: {
+          backup_phrase: string
+          created_at?: string
+          id?: string
+          last_active_at?: string
+          password_hash: string
+          username: string
+        }
+        Update: {
+          backup_phrase?: string
+          created_at?: string
+          id?: string
+          last_active_at?: string
+          password_hash?: string
+          username?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      delete_inactive_users: { Args: never; Returns: undefined }
     }
     Enums: {
       [_ in never]: never
