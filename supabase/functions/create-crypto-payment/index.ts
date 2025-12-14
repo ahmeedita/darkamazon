@@ -33,16 +33,19 @@ serve(async (req: Request): Promise<Response> => {
       );
     }
 
-    // Create Supabase client to verify user
+    // Create Supabase client with service role to verify user
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey, {
-      global: { headers: { Authorization: authHeader } }
-    });
-
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    
+    // Extract token from Bearer header
+    const token = authHeader.replace('Bearer ', '');
+    
+    // Create admin client to verify the JWT
+    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
+    
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
     if (authError || !user) {
-      console.log("Unauthorized: Invalid token");
+      console.log("Unauthorized: Invalid token", authError?.message);
       return new Response(
         JSON.stringify({ error: "Invalid authentication" }),
         { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
