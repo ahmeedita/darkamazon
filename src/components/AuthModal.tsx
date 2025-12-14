@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Lock, Mail, User, Eye, EyeOff, AlertTriangle, Copy, Check } from 'lucide-react';
+import { Lock, Mail, User, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -13,7 +13,7 @@ interface AuthModalProps {
   onSuccess: () => void;
 }
 
-type AuthMode = 'login' | 'signup' | 'showPhrase';
+type AuthMode = 'login' | 'signup' | 'forgotPassword';
 
 export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
   const [mode, setMode] = useState<AuthMode>('login');
@@ -25,10 +25,8 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
     confirmPassword: '',
   });
   const [loading, setLoading] = useState(false);
-  const [generatedPhrase, setGeneratedPhrase] = useState('');
-  const [copied, setCopied] = useState(false);
   const { toast } = useToast();
-  const { signUp, signIn } = useAuth();
+  const { signUp, signIn, resetPassword } = useAuth();
 
   const resetForm = () => {
     setFormData({
@@ -37,30 +35,11 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
       password: '',
       confirmPassword: '',
     });
-    setGeneratedPhrase('');
-    setCopied(false);
   };
 
   const handleModeChange = (newMode: AuthMode) => {
     setMode(newMode);
     resetForm();
-  };
-
-  const handleCopyPhrase = async () => {
-    await navigator.clipboard.writeText(generatedPhrase);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  const handleConfirmPhrase = () => {
-    toast({
-      title: 'Account created!',
-      description: 'Welcome to DARK AMAZON premium marketplace',
-    });
-    onSuccess();
-    onClose();
-    resetForm();
-    setMode('login');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -123,9 +102,29 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
             description: result.error,
             variant: 'destructive',
           });
-        } else if (result.backupPhrase) {
-          setGeneratedPhrase(result.backupPhrase);
-          setMode('showPhrase');
+        } else {
+          toast({
+            title: 'Account created!',
+            description: 'Welcome to DARK AMAZON premium marketplace',
+          });
+          onSuccess();
+          onClose();
+          resetForm();
+        }
+      } else if (mode === 'forgotPassword') {
+        const result = await resetPassword(formData.email);
+        if (result.error) {
+          toast({
+            title: 'Reset failed',
+            description: result.error,
+            variant: 'destructive',
+          });
+        } else {
+          toast({
+            title: 'Check your email',
+            description: 'We sent you a password reset link',
+          });
+          handleModeChange('login');
         }
       }
     } catch (error) {
@@ -138,60 +137,6 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
       setLoading(false);
     }
   };
-
-  const renderShowPhrase = () => (
-    <div className="space-y-6 mt-6">
-      <div className="p-4 bg-destructive/10 border border-destructive/30 rounded-lg">
-        <div className="flex items-start gap-3">
-          <AlertTriangle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
-          <div className="space-y-2">
-            <p className="text-sm font-medium text-destructive">Save your recovery phrase!</p>
-            <p className="text-xs text-muted-foreground">
-              This is the ONLY way to recover your account if you forget your password. 
-              Write it down and keep it safe. We cannot recover your account without it.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div className="p-4 bg-card border border-border rounded-lg">
-        <div className="flex items-center justify-between mb-2">
-          <Label className="text-sm font-medium text-foreground">Your Recovery Phrase</Label>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={handleCopyPhrase}
-            className="text-xs"
-          >
-            {copied ? <Check className="w-4 h-4 mr-1" /> : <Copy className="w-4 h-4 mr-1" />}
-            {copied ? 'Copied!' : 'Copy'}
-          </Button>
-        </div>
-        <div className="grid grid-cols-3 gap-2 p-3 bg-secondary/50 rounded-lg">
-          {generatedPhrase.split(' ').map((word, index) => (
-            <div key={index} className="flex items-center gap-1 text-sm">
-              <span className="text-muted-foreground text-xs">{index + 1}.</span>
-              <span className="text-foreground font-mono">{word}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg">
-        <p className="text-xs text-amber-200 text-center">
-          ⚠️ Inactive accounts are automatically deleted after 7 days. Stay active to keep your account!
-        </p>
-      </div>
-
-      <Button
-        onClick={handleConfirmPhrase}
-        className="w-full btn-gold text-lg py-6"
-      >
-        I've Saved My Phrase - Continue
-      </Button>
-    </div>
-  );
 
   const renderLoginForm = () => (
     <form onSubmit={handleSubmit} className="space-y-6 mt-6">
@@ -261,6 +206,13 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
           className="text-primary hover:text-accent transition-colors font-medium text-sm"
         >
           Don't have an account? Sign up
+        </button>
+        <button
+          type="button"
+          onClick={() => handleModeChange('forgotPassword')}
+          className="text-muted-foreground hover:text-foreground transition-colors text-xs"
+        >
+          Forgot password?
         </button>
       </div>
     </form>
@@ -376,11 +328,57 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
     </form>
   );
 
+  const renderForgotPasswordForm = () => (
+    <form onSubmit={handleSubmit} className="space-y-6 mt-6">
+      <div className="p-4 bg-card border border-border rounded-lg">
+        <p className="text-sm text-muted-foreground">
+          Enter your email address and we'll send you a link to reset your password.
+        </p>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="reset-email" className="text-foreground font-medium">
+          Email
+        </Label>
+        <div className="relative">
+          <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            id="reset-email"
+            type="email"
+            placeholder="Enter your email"
+            value={formData.email}
+            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            className="pl-10 input-premium"
+            required
+          />
+        </div>
+      </div>
+
+      <Button
+        type="submit"
+        disabled={loading}
+        className="w-full btn-gold text-lg py-6"
+      >
+        {loading ? <div className="spinner-gold" /> : 'Send Reset Link'}
+      </Button>
+
+      <div className="text-center">
+        <button
+          type="button"
+          onClick={() => handleModeChange('login')}
+          className="text-primary hover:text-accent transition-colors font-medium text-sm"
+        >
+          Back to login
+        </button>
+      </div>
+    </form>
+  );
+
   const getTitle = () => {
     switch (mode) {
       case 'login': return 'Welcome Back';
       case 'signup': return 'Join DARK AMAZON';
-      case 'showPhrase': return 'Save Your Recovery Phrase';
+      case 'forgotPassword': return 'Reset Password';
     }
   };
 
@@ -395,7 +393,7 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
 
         {mode === 'login' && renderLoginForm()}
         {mode === 'signup' && renderSignupForm()}
-        {mode === 'showPhrase' && renderShowPhrase()}
+        {mode === 'forgotPassword' && renderForgotPasswordForm()}
       </DialogContent>
     </Dialog>
   );
