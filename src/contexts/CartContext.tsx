@@ -28,17 +28,39 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [userId, setUserId] = useState<string | null>(null);
   const { toast } = useToast();
 
-  // Get current user
+  // Get current user and listen for changes
   useEffect(() => {
-    const currentUser = localStorage.getItem('darkAmazon_currentUser');
-    if (currentUser) {
-      const user = JSON.parse(currentUser);
-      setUserId(user.id);
-    } else {
-      setUserId(null);
-      setItems([]);
-      setLoading(false);
-    }
+    const checkUser = () => {
+      const currentUser = localStorage.getItem('darkAmazon_currentUser');
+      if (currentUser) {
+        const user = JSON.parse(currentUser);
+        setUserId(user.id);
+      } else {
+        setUserId(null);
+        setItems([]);
+        setLoading(false);
+      }
+    };
+
+    checkUser();
+
+    // Listen for storage changes (login/logout)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'darkAmazon_currentUser') {
+        checkUser();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Also listen for custom event for same-tab updates
+    const handleUserChange = () => checkUser();
+    window.addEventListener('userChanged', handleUserChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('userChanged', handleUserChange);
+    };
   }, []);
 
   // Load cart from database
@@ -62,7 +84,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
           type: item.product_type as 'card' | 'giftcard' | 'transfer',
           name: item.name,
           price: Number(item.price),
-          details: item.details ? JSON.stringify(item.details) : undefined,
+          details: item.details && typeof item.details === 'object' && 'text' in item.details 
+            ? (item.details as { text: string }).text 
+            : undefined,
         }));
 
         setItems(cartItems);
@@ -98,7 +122,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           product_type: item.type,
           name: item.name,
           price: item.price,
-          details: item.details ? JSON.parse(item.details) : null,
+          details: item.details ? { text: item.details } : null,
         });
 
       if (error) {
