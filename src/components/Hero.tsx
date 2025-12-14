@@ -53,8 +53,8 @@ export function Hero({ onGetStarted }: HeroProps) {
               <div className="p-2 md:p-3 bg-success-high/20 rounded-lg mb-3 md:mb-4">
                 <Shield className="w-6 h-6 md:w-8 md:h-8 text-success-high" />
               </div>
-              <h3 className="font-bold text-foreground mb-1 md:mb-2 text-sm md:text-base">80% Success Rate</h3>
-              <p className="text-muted-foreground text-xs md:text-sm">Premium tier guaranteed performance</p>
+              <h3 className="font-bold text-foreground mb-1 md:mb-2 text-sm md:text-base">98% Success Rate</h3>
+              <p className="text-muted-foreground text-xs md:text-sm">Premium tier guaranteed CC performance</p>
             </div>
 
             <div className="flex flex-col items-center text-center">
