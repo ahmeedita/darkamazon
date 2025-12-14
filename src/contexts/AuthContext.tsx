@@ -101,6 +101,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchProfile = async (authUserId: string) => {
     try {
+      // Only select non-sensitive columns (excludes backup_phrase)
       const { data, error } = await supabase
         .from('profiles')
         .select('id, username, auth_user_id, last_active_at, created_at')
@@ -149,13 +150,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { error: 'Failed to create account' };
     }
 
-    // Create profile linked to auth user
+    // Create profile linked to auth user (password handled by Supabase Auth)
     const { error: profileError } = await supabase
       .from('profiles')
       .insert({
         auth_user_id: authData.user.id,
         username: username.toLowerCase().trim(),
-        password_hash: 'supabase_auth', // Not used anymore, but required field
         backup_phrase: backupPhrase,
       });
 

@@ -115,7 +115,6 @@ export type Database = {
           created_at: string
           id: string
           last_active_at: string
-          password_hash: string
           username: string
         }
         Insert: {
@@ -124,7 +123,6 @@ export type Database = {
           created_at?: string
           id?: string
           last_active_at?: string
-          password_hash: string
           username: string
         }
         Update: {
@@ -133,7 +131,6 @@ export type Database = {
           created_at?: string
           id?: string
           last_active_at?: string
-          password_hash?: string
           username?: string
         }
         Relationships: []
@@ -145,6 +142,13 @@ export type Database = {
     Functions: {
       cancel_expired_orders: { Args: never; Returns: undefined }
       delete_inactive_users: { Args: never; Returns: undefined }
+      verify_backup_phrase: {
+        Args: { phrase: string }
+        Returns: {
+          auth_id: string
+          profile_id: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
