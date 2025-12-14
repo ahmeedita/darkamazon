@@ -15,10 +15,9 @@ interface AuthContextType {
   session: Session | null;
   profile: UserProfile | null;
   loading: boolean;
-  signUp: (email: string, password: string, username: string) => Promise<{ error: string | null }>;
-  signIn: (email: string, password: string) => Promise<{ error: string | null }>;
+  signUp: (username: string, password: string) => Promise<{ error: string | null }>;
+  signIn: (username: string, password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
-  resetPassword: (email: string) => Promise<{ error: string | null }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -89,10 +88,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const signUp = async (email: string, password: string, username: string): Promise<{ error: string | null }> => {
-    // First, sign up with Supabase Auth
+  const signUp = async (username: string, password: string): Promise<{ error: string | null }> => {
+    const normalizedUsername = username.toLowerCase().trim();
+    
+    // Check if username already exists
+    const { data: existingProfile } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('username', normalizedUsername)
+      .single();
+
+    if (existingProfile) {
+      return { error: 'Username already taken' };
+    }
+
+    // Create fake email from username for Supabase Auth
+    const fakeEmail = `${normalizedUsername}@darkamazon.local`;
+    
+    // Sign up with Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signUp({
-      email,
+      email: fakeEmail,
       password,
       options: {
         emailRedirectTo: `${window.location.origin}/`,
@@ -101,7 +116,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (authError) {
       if (authError.message.includes('already registered')) {
-        return { error: 'Email already registered' };
+        return { error: 'Username already taken' };
       }
       return { error: authError.message };
     }
@@ -115,7 +130,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .from('profiles')
       .insert({
         auth_user_id: authData.user.id,
-        username: username.toLowerCase().trim(),
+        username: normalizedUsername,
       });
 
     if (profileError) {
@@ -133,14 +148,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error: null };
   };
 
-  const signIn = async (email: string, password: string): Promise<{ error: string | null }> => {
+  const signIn = async (username: string, password: string): Promise<{ error: string | null }> => {
+    const normalizedUsername = username.toLowerCase().trim();
+    const fakeEmail = `${normalizedUsername}@darkamazon.local`;
+    
     const { error } = await supabase.auth.signInWithPassword({
-      email,
+      email: fakeEmail,
       password,
     });
 
     if (error) {
-      return { error: 'Invalid email or password' };
+      return { error: 'Invalid username or password' };
     }
 
     return { error: null };
@@ -153,17 +171,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setProfile(null);
   };
 
-  const resetPassword = async (email: string): Promise<{ error: string | null }> => {
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/`,
-    });
-
-    if (error) {
-      return { error: error.message };
-    }
-
-    return { error: null };
-  };
 
   return (
     <AuthContext.Provider value={{
@@ -174,7 +181,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signUp,
       signIn,
       signOut,
-      resetPassword,
     }}>
       {children}
     </AuthContext.Provider>
