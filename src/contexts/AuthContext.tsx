@@ -15,51 +15,13 @@ interface AuthContextType {
   session: Session | null;
   profile: UserProfile | null;
   loading: boolean;
-  signUp: (email: string, password: string, username: string) => Promise<{ error: string | null; backupPhrase?: string }>;
+  signUp: (email: string, password: string, username: string) => Promise<{ error: string | null }>;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
-  recoverAccount: (backupPhrase: string, newPassword: string) => Promise<{ error: string | null }>;
+  resetPassword: (email: string) => Promise<{ error: string | null }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-// Word list for generating backup phrases (BIP39 subset)
-const WORD_LIST = [
-  'abandon', 'ability', 'able', 'about', 'above', 'absent', 'absorb', 'abstract',
-  'absurd', 'abuse', 'access', 'accident', 'account', 'accuse', 'achieve', 'acid',
-  'acoustic', 'acquire', 'across', 'act', 'action', 'actor', 'actress', 'actual',
-  'adapt', 'add', 'addict', 'address', 'adjust', 'admit', 'adult', 'advance',
-  'advice', 'aerobic', 'affair', 'afford', 'afraid', 'again', 'age', 'agent',
-  'agree', 'ahead', 'aim', 'air', 'airport', 'aisle', 'alarm', 'album',
-  'alcohol', 'alert', 'alien', 'all', 'alley', 'allow', 'almost', 'alone',
-  'alpha', 'already', 'also', 'alter', 'always', 'amateur', 'amazing', 'among',
-  'amount', 'amused', 'analyst', 'anchor', 'ancient', 'anger', 'angle', 'angry',
-  'animal', 'ankle', 'announce', 'annual', 'another', 'answer', 'antenna', 'antique',
-  'anxiety', 'any', 'apart', 'apology', 'appear', 'apple', 'approve', 'april',
-  'arch', 'arctic', 'area', 'arena', 'argue', 'arm', 'armed', 'armor',
-  'army', 'around', 'arrange', 'arrest', 'arrive', 'arrow', 'art', 'artefact',
-  'artist', 'artwork', 'ask', 'aspect', 'assault', 'asset', 'assist', 'assume',
-  'asthma', 'athlete', 'atom', 'attack', 'attend', 'attitude', 'attract', 'auction',
-  'audit', 'august', 'aunt', 'author', 'auto', 'autumn', 'average', 'avocado',
-  'avoid', 'awake', 'aware', 'away', 'awesome', 'awful', 'awkward', 'axis',
-  'baby', 'bachelor', 'bacon', 'badge', 'bag', 'balance', 'balcony', 'ball',
-  'bamboo', 'banana', 'banner', 'bar', 'barely', 'bargain', 'barrel', 'base',
-  'basic', 'basket', 'battle', 'beach', 'bean', 'beauty', 'because', 'become',
-  'beef', 'before', 'begin', 'behave', 'behind', 'believe', 'below', 'belt',
-  'bench', 'benefit', 'best', 'betray', 'better', 'between', 'beyond', 'bicycle',
-  'bid', 'bike', 'bind', 'biology', 'bird', 'birth', 'bitter', 'black',
-  'blade', 'blame', 'blanket', 'blast', 'bleak', 'bless', 'blind', 'blood',
-  'blossom', 'blouse', 'blue', 'blur', 'blush', 'board', 'boat', 'body'
-];
-
-function generateBackupPhrase(): string {
-  const words: string[] = [];
-  for (let i = 0; i < 12; i++) {
-    const randomIndex = Math.floor(Math.random() * WORD_LIST.length);
-    words.push(WORD_LIST[randomIndex]);
-  }
-  return words.join(' ');
-}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -101,7 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchProfile = async (authUserId: string) => {
     try {
-      // Only select non-sensitive columns (excludes backup_phrase)
+      // Only select non-sensitive columns
       const { data, error } = await supabase
         .from('profiles')
         .select('id, username, auth_user_id, last_active_at, created_at')
@@ -112,7 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.error('Error fetching profile:', error);
         setProfile(null);
       } else {
-        setProfile(data);
+        setProfile(data as UserProfile);
         // Update last active time
         await supabase
           .from('profiles')
@@ -127,9 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const signUp = async (email: string, password: string, username: string): Promise<{ error: string | null; backupPhrase?: string }> => {
-    const backupPhrase = generateBackupPhrase();
-    
+  const signUp = async (email: string, password: string, username: string): Promise<{ error: string | null }> => {
     // First, sign up with Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
@@ -150,13 +110,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { error: 'Failed to create account' };
     }
 
-    // Create profile linked to auth user (password handled by Supabase Auth)
+    // Create profile linked to auth user
     const { error: profileError } = await supabase
       .from('profiles')
       .insert({
         auth_user_id: authData.user.id,
         username: username.toLowerCase().trim(),
-        backup_phrase: backupPhrase,
       });
 
     if (profileError) {
@@ -171,7 +130,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Fetch the profile
     await fetchProfile(authData.user.id);
 
-    return { error: null, backupPhrase };
+    return { error: null };
   };
 
   const signIn = async (email: string, password: string): Promise<{ error: string | null }> => {
@@ -194,21 +153,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setProfile(null);
   };
 
-  const recoverAccount = async (backupPhrase: string, newPassword: string): Promise<{ error: string | null }> => {
-    // Find user by backup phrase (this works because backup phrases are unique per user)
-    const { data: profileData, error: profileError } = await supabase
-      .from('profiles')
-      .select('auth_user_id')
-      .eq('backup_phrase', backupPhrase.toLowerCase().trim())
-      .single();
+  const resetPassword = async (email: string): Promise<{ error: string | null }> => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/`,
+    });
 
-    if (profileError || !profileData) {
-      return { error: 'Invalid recovery phrase' };
+    if (error) {
+      return { error: error.message };
     }
 
-    // Note: Password reset via backup phrase requires admin/service role
-    // For now, we'll inform the user to use email-based recovery
-    return { error: 'Password reset requires email verification. Please use the "Forgot Password" option.' };
+    return { error: null };
   };
 
   return (
@@ -220,7 +174,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signUp,
       signIn,
       signOut,
-      recoverAccount,
+      resetPassword,
     }}>
       {children}
     </AuthContext.Provider>

@@ -111,7 +111,6 @@ export type Database = {
       profiles: {
         Row: {
           auth_user_id: string | null
-          backup_phrase: string
           created_at: string
           id: string
           last_active_at: string
@@ -119,7 +118,6 @@ export type Database = {
         }
         Insert: {
           auth_user_id?: string | null
-          backup_phrase: string
           created_at?: string
           id?: string
           last_active_at?: string
@@ -127,7 +125,6 @@ export type Database = {
         }
         Update: {
           auth_user_id?: string | null
-          backup_phrase?: string
           created_at?: string
           id?: string
           last_active_at?: string
@@ -142,13 +139,6 @@ export type Database = {
     Functions: {
       cancel_expired_orders: { Args: never; Returns: undefined }
       delete_inactive_users: { Args: never; Returns: undefined }
-      verify_backup_phrase: {
-        Args: { phrase: string }
-        Returns: {
-          auth_id: string
-          profile_id: string
-        }[]
-      }
     }
     Enums: {
       [_ in never]: never
