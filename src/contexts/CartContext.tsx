@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from './AuthContext';
 
 export interface CartItem {
   id: string;
@@ -25,47 +26,13 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [userId, setUserId] = useState<string | null>(null);
   const { toast } = useToast();
+  const { profile } = useAuth();
 
-  // Get current user and listen for changes
+  // Load cart from database when profile changes
   useEffect(() => {
-    const checkUser = () => {
-      const currentUser = localStorage.getItem('darkAmazon_currentUser');
-      if (currentUser) {
-        const user = JSON.parse(currentUser);
-        setUserId(user.id);
-      } else {
-        setUserId(null);
-        setItems([]);
-        setLoading(false);
-      }
-    };
-
-    checkUser();
-
-    // Listen for storage changes (login/logout)
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'darkAmazon_currentUser') {
-        checkUser();
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    
-    // Also listen for custom event for same-tab updates
-    const handleUserChange = () => checkUser();
-    window.addEventListener('userChanged', handleUserChange);
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('userChanged', handleUserChange);
-    };
-  }, []);
-
-  // Load cart from database
-  useEffect(() => {
-    if (!userId) {
+    if (!profile?.id) {
+      setItems([]);
       setLoading(false);
       return;
     }
@@ -75,7 +42,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         const { data, error } = await supabase
           .from('cart_items')
           .select('*')
-          .eq('user_id', userId);
+          .eq('user_id', profile.id);
 
         if (error) throw error;
 
@@ -98,10 +65,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
     };
 
     loadCart();
-  }, [userId]);
+  }, [profile?.id]);
 
   const addItem = async (item: CartItem) => {
-    if (!userId) {
+    if (!profile?.id) {
       toast({
         title: 'Please log in',
         description: 'You need to be logged in to add items to cart',
@@ -117,7 +84,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const { error } = await supabase
         .from('cart_items')
         .insert({
-          user_id: userId,
+          user_id: profile.id,
           product_id: item.id,
           product_type: item.type,
           name: item.name,
@@ -145,7 +112,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const removeItem = async (id: string) => {
-    if (!userId) return;
+    if (!profile?.id) return;
 
     const removedItem = items.find(item => item.id === id);
     
@@ -164,7 +131,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const { error } = await supabase
         .from('cart_items')
         .delete()
-        .eq('user_id', userId)
+        .eq('user_id', profile.id)
         .eq('product_id', id);
 
       if (error) {
@@ -180,7 +147,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const clearCart = async () => {
-    if (!userId) {
+    if (!profile?.id) {
       setItems([]);
       return;
     }
@@ -194,7 +161,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const { error } = await supabase
         .from('cart_items')
         .delete()
-        .eq('user_id', userId);
+        .eq('user_id', profile.id);
 
       if (error) {
         // Rollback on error

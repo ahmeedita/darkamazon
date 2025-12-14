@@ -4,16 +4,17 @@ import { Button } from '@/components/ui/button';
 import { Crown, LogOut, User, MessageCircle, Package, Menu, X } from 'lucide-react';
 import { AuthModal } from './AuthModal';
 import { Cart } from './Cart';
+import { useAuth } from '@/contexts/AuthContext';
 
-interface HeaderProps {
-  user: any;
-  onLogin: (user: any) => void;
-  onLogout: () => void;
-}
-
-export function Header({ user, onLogin, onLogout }: HeaderProps) {
+export function Header() {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { profile, signOut } = useAuth();
+
+  const handleLogout = async () => {
+    await signOut();
+    setMobileMenuOpen(false);
+  };
 
   return (
     <>
@@ -48,7 +49,7 @@ export function Header({ user, onLogin, onLogout }: HeaderProps) {
             </nav>
 
             <div className="flex items-center space-x-2 md:space-x-4">
-              {user && <Cart />}
+              {profile && <Cart />}
               
               {/* Mobile menu button */}
               <button
@@ -60,14 +61,14 @@ export function Header({ user, onLogin, onLogout }: HeaderProps) {
 
               {/* Desktop user section */}
               <div className="hidden md:flex items-center">
-                {user ? (
+                {profile ? (
                   <div className="flex items-center space-x-3">
                     <div className="flex items-center space-x-2 bg-card px-3 py-2 rounded-lg">
                       <User className="w-4 h-4 text-primary" />
-                      <span className="text-foreground font-medium text-sm">{user.username}</span>
+                      <span className="text-foreground font-medium text-sm">{profile.username}</span>
                     </div>
                     <Button
-                      onClick={onLogout}
+                      onClick={handleLogout}
                       variant="outline"
                       size="sm"
                       className="border-border hover:bg-secondary"
@@ -126,17 +127,14 @@ export function Header({ user, onLogin, onLogout }: HeaderProps) {
                 </a>
               </nav>
               
-              {user ? (
+              {profile ? (
                 <div className="flex items-center justify-between pt-3 border-t border-border">
                   <div className="flex items-center space-x-2">
                     <User className="w-4 h-4 text-primary" />
-                    <span className="text-foreground font-medium text-sm">{user.username}</span>
+                    <span className="text-foreground font-medium text-sm">{profile.username}</span>
                   </div>
                   <Button
-                    onClick={() => {
-                      onLogout();
-                      setMobileMenuOpen(false);
-                    }}
+                    onClick={handleLogout}
                     variant="outline"
                     size="sm"
                     className="border-border hover:bg-secondary text-xs"
@@ -165,7 +163,7 @@ export function Header({ user, onLogin, onLogout }: HeaderProps) {
       <AuthModal
         isOpen={authModalOpen}
         onClose={() => setAuthModalOpen(false)}
-        onSuccess={onLogin}
+        onSuccess={() => setAuthModalOpen(false)}
       />
     </>
   );

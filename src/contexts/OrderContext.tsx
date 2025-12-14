@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { CartItem } from './CartContext';
 import { releaseCards } from '@/lib/cardGenerator';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from './AuthContext';
 
 export interface Order {
   id: string;
@@ -30,24 +31,12 @@ const OrderContext = createContext<OrderContextType | undefined>(undefined);
 export function OrderProvider({ children }: { children: ReactNode }) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-  const [userId, setUserId] = useState<string | null>(null);
-
-  // Get current user
-  useEffect(() => {
-    const currentUser = localStorage.getItem('darkAmazon_currentUser');
-    if (currentUser) {
-      const user = JSON.parse(currentUser);
-      setUserId(user.id);
-    } else {
-      setUserId(null);
-      setOrders([]);
-      setLoading(false);
-    }
-  }, []);
+  const { profile } = useAuth();
 
   // Load orders from database
   useEffect(() => {
-    if (!userId) {
+    if (!profile?.id) {
+      setOrders([]);
       setLoading(false);
       return;
     }
@@ -57,7 +46,7 @@ export function OrderProvider({ children }: { children: ReactNode }) {
         const { data, error } = await supabase
           .from('orders')
           .select('*')
-          .eq('user_id', userId)
+          .eq('user_id', profile.id)
           .order('created_at', { ascending: false });
 
         if (error) throw error;
@@ -84,7 +73,7 @@ export function OrderProvider({ children }: { children: ReactNode }) {
     };
 
     loadOrders();
-  }, [userId]);
+  }, [profile?.id]);
 
   // Check for expired orders locally (database handles this via cron, but we update UI immediately)
   useEffect(() => {
@@ -132,10 +121,10 @@ export function OrderProvider({ children }: { children: ReactNode }) {
     // Optimistic update
     setOrders(prev => [newOrder, ...prev]);
 
-    if (userId) {
+    if (profile?.id) {
       try {
         const insertData = {
-          user_id: userId,
+          user_id: profile.id,
           order_id: id,
           items: JSON.parse(JSON.stringify(items)),
           total,
@@ -171,13 +160,13 @@ export function OrderProvider({ children }: { children: ReactNode }) {
       order.id === id ? { ...order, status } : order
     ));
 
-    if (userId) {
+    if (profile?.id) {
       try {
         const { error } = await supabase
           .from('orders')
           .update({ status })
           .eq('order_id', id)
-          .eq('user_id', userId);
+          .eq('user_id', profile.id);
 
         if (error) {
           // Rollback on error
@@ -200,7 +189,7 @@ export function OrderProvider({ children }: { children: ReactNode }) {
       order.id === id ? { ...order, paymentAddress, paymentCurrency } : order
     ));
 
-    if (userId) {
+    if (profile?.id) {
       try {
         const { error } = await supabase
           .from('orders')
@@ -209,7 +198,7 @@ export function OrderProvider({ children }: { children: ReactNode }) {
             payment_currency: paymentCurrency 
           })
           .eq('order_id', id)
-          .eq('user_id', userId);
+          .eq('user_id', profile.id);
 
         if (error) throw error;
       } catch (error) {
