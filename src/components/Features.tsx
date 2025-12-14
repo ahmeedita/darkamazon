@@ -12,7 +12,7 @@ export function Features() {
     {
       icon: Zap,
       title: 'Instant Delivery',
-      description: 'Receive your card details immediately after successful PayPal payment',
+      description: 'Receive your card details immediately after successful crypto payment',
       color: 'text-primary',
       bgColor: 'bg-primary/20',
     },
