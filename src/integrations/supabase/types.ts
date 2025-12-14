@@ -14,6 +14,100 @@ export type Database = {
   }
   public: {
     Tables: {
+      cart_items: {
+        Row: {
+          created_at: string
+          details: Json | null
+          id: string
+          name: string
+          price: number
+          product_id: string
+          product_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          details?: Json | null
+          id?: string
+          name: string
+          price: number
+          product_id: string
+          product_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          details?: Json | null
+          id?: string
+          name?: string
+          price?: number
+          product_id?: string
+          product_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cart_items_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          created_at: string
+          delivery_email: string | null
+          expires_at: string
+          id: string
+          items: Json
+          order_id: string
+          payment_address: string | null
+          payment_currency: string | null
+          recipient_email: string | null
+          status: string
+          total: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          delivery_email?: string | null
+          expires_at?: string
+          id?: string
+          items?: Json
+          order_id: string
+          payment_address?: string | null
+          payment_currency?: string | null
+          recipient_email?: string | null
+          status?: string
+          total: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          delivery_email?: string | null
+          expires_at?: string
+          id?: string
+          items?: Json
+          order_id?: string
+          payment_address?: string | null
+          payment_currency?: string | null
+          recipient_email?: string | null
+          status?: string
+          total?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           backup_phrase: string
@@ -46,6 +140,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cancel_expired_orders: { Args: never; Returns: undefined }
       delete_inactive_users: { Args: never; Returns: undefined }
     }
     Enums: {
