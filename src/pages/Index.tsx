@@ -6,26 +6,30 @@ import { Features } from '@/components/Features';
 import { Footer } from '@/components/Footer';
 import { CryptoTicker } from '@/components/CryptoTicker';
 import { AuthModal } from '@/components/AuthModal';
+import { updateLastActive, UserProfile } from '@/lib/auth';
 
 const Index = () => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState<UserProfile | null>(null);
   const [authModalOpen, setAuthModalOpen] = useState(false);
 
   useEffect(() => {
     // Check for existing user session
-    const currentUser = localStorage.getItem('chopcityzcc_currentUser');
+    const currentUser = localStorage.getItem('darkAmazon_currentUser');
     if (currentUser) {
-      setUser(JSON.parse(currentUser));
+      const parsed = JSON.parse(currentUser);
+      setUser(parsed);
+      // Update last active time
+      updateLastActive(parsed.id);
     }
   }, []);
 
-  const handleLogin = (userData: any) => {
+  const handleLogin = (userData: UserProfile) => {
     setUser(userData);
     setAuthModalOpen(false);
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('chopcityzcc_currentUser');
+    localStorage.removeItem('darkAmazon_currentUser');
     setUser(null);
   };
 
