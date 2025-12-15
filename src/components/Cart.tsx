@@ -21,8 +21,10 @@ export function Cart() {
   const [deliveryEmail, setDeliveryEmail] = useState('');
   const [recipientEmail, setRecipientEmail] = useState('');
 
-  // Check if cart has any transfer items
+  // Check if cart has transfer items and non-transfer items
   const hasTransferItems = items.some(item => item.type === 'transfer');
+  const hasNonTransferItems = items.some(item => item.type !== 'transfer');
+  const onlyTransferItems = hasTransferItems && !hasNonTransferItems;
 
   const handleCheckout = () => {
     if (items.length === 0) {
@@ -30,7 +32,8 @@ export function Cart() {
       return;
     }
 
-    if (!deliveryEmail || !deliveryEmail.includes('@')) {
+    // Only require delivery email if there are non-transfer items
+    if (!onlyTransferItems && (!deliveryEmail || !deliveryEmail.includes('@'))) {
       toast.error('Please enter a valid delivery email');
       return;
     }
@@ -144,22 +147,24 @@ export function Cart() {
                 </div>
 
                 <div className="border-t border-border pt-4 mt-4 space-y-4">
-                  {/* Delivery Email Input */}
-                  <div className="space-y-2">
-                    <Label htmlFor="delivery-email" className="text-sm text-foreground flex items-center gap-2">
-                      <Mail className="w-4 h-4 text-primary" />
-                      Delivery Email
-                    </Label>
-                    <Input
-                      id="delivery-email"
-                      type="email"
-                      placeholder="your@email.com"
-                      value={deliveryEmail}
-                      onChange={(e) => setDeliveryEmail(e.target.value)}
-                      className="input-premium text-sm"
-                    />
-                    <p className="text-xs text-muted-foreground">Your goods will be sent to this email</p>
-                  </div>
+                  {/* Delivery Email Input - only show if there are non-transfer items */}
+                  {!onlyTransferItems && (
+                    <div className="space-y-2">
+                      <Label htmlFor="delivery-email" className="text-sm text-foreground flex items-center gap-2">
+                        <Mail className="w-4 h-4 text-primary" />
+                        Delivery Email
+                      </Label>
+                      <Input
+                        id="delivery-email"
+                        type="email"
+                        placeholder="your@email.com"
+                        value={deliveryEmail}
+                        onChange={(e) => setDeliveryEmail(e.target.value)}
+                        className="input-premium text-sm"
+                      />
+                      <p className="text-xs text-muted-foreground">Your goods will be sent to this email</p>
+                    </div>
+                  )}
 
                   {/* Recipient Email for Money Transfers */}
                   {hasTransferItems && (
@@ -218,7 +223,7 @@ export function Cart() {
         total={currentOrderTotal}
         orderId={currentOrderId}
         onPaymentInitiated={handlePaymentInitiated}
-        deliveryEmail={deliveryEmail}
+        deliveryEmail={onlyTransferItems ? undefined : deliveryEmail}
         recipientEmail={hasTransferItems ? recipientEmail : undefined}
       />
     </>
