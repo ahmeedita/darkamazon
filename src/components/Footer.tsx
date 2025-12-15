@@ -29,13 +29,13 @@ export function Footer() {
             </p>
             <div className="space-y-2">
               <a
-                href="https://t.me/Chopcityzcc"
+                href="https://t.me/Darkamazoncc"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center space-x-2 text-foreground hover:text-primary transition-colors text-sm md:text-base"
               >
                 <MessageCircle className="w-4 h-4" />
-                <span>@Chopcityzcc on Telegram</span>
+                <span>@Darkamazoncc on Telegram</span>
               </a>
               <p className="text-xs md:text-sm text-muted-foreground">24/7 Support Available</p>
             </div>
@@ -56,7 +56,7 @@ export function Footer() {
                 </a>
               </li>
               <li>
-                <a href="https://t.me/Chopcityzcc" target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                <a href="https://t.me/Darkamazoncc" target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground hover:text-primary transition-colors">
                   Support
                 </a>
               </li>

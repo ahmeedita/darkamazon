@@ -42,7 +42,7 @@ export function Header() {
                 <Package className="w-4 h-4" />
                 <span>Orders</span>
               </Link>
-              <a href="https://t.me/Chopcityzcc" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-1 text-foreground hover:text-primary transition-colors font-medium text-sm">
+              <a href="https://t.me/Darkamazoncc" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-1 text-foreground hover:text-primary transition-colors font-medium text-sm">
                 <MessageCircle className="w-4 h-4" />
                 <span>Support</span>
               </a>
@@ -117,7 +117,7 @@ export function Header() {
                   <span>Orders</span>
                 </Link>
                 <a 
-                  href="https://t.me/Chopcityzcc" 
+                  href="https://t.me/Darkamazoncc"
                   target="_blank" 
                   rel="noopener noreferrer" 
                   className="flex items-center space-x-2 text-foreground hover:text-primary transition-colors font-medium text-sm"
