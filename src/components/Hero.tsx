@@ -41,7 +41,7 @@ export function Hero({ onGetStarted }: HeroProps) {
             <Button
               variant="outline"
               className="border-border text-foreground hover:bg-secondary text-sm md:text-lg px-6 md:px-8 py-3 md:py-4"
-              onClick={() => window.open('https://t.me/Chopcityzcc', '_blank')}
+              onClick={() => window.open('https://t.me/Darkamazoncc', '_blank')}
             >
               <MessageCircle className="w-4 h-4 md:w-5 md:h-5 mr-2" />
               24/7 Support
