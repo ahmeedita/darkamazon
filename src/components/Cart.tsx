@@ -53,18 +53,18 @@ export function Cart() {
     // Create order with pending status using the same orderId
     addOrder([...items], total, orderId);
     
+    // Clear cart immediately after order is created
+    clearCart();
+    setDeliveryEmail('');
+    setRecipientEmail('');
+    
     // Show crypto payment modal
     setShowPaymentModal(true);
   };
 
   const handlePaymentInitiated = () => {
     setIsCheckingOut(true);
-    
-    // Clear cart after payment initiated
     setTimeout(() => {
-      clearCart();
-      setDeliveryEmail('');
-      setRecipientEmail('');
       setIsCheckingOut(false);
     }, 1000);
   };
