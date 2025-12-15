@@ -5,6 +5,7 @@ import { Copy, Check, Loader2, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { Progress } from '@/components/ui/progress';
+import { QRCodeSVG } from 'qrcode.react';
 
 interface CryptoPaymentModalProps {
   isOpen: boolean;
@@ -280,9 +281,9 @@ export function CryptoPaymentModal({
                 />
               </div>
 
-              {/* Payment Address */}
+              {/* Payment Address with QR Code */}
               <div className="bg-[#1e293b]/50 rounded-lg p-4 border border-[#334155]">
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center justify-between mb-3">
                   <p className="text-primary text-xs">Address</p>
                   <Button
                     variant="secondary"
@@ -294,7 +295,20 @@ export function CryptoPaymentModal({
                     Copy
                   </Button>
                 </div>
-                <p className="font-mono text-white text-sm break-all">{paymentAddress}</p>
+                
+                {/* QR Code */}
+                <div className="flex justify-center mb-3">
+                  <div className="bg-white p-3 rounded-lg">
+                    <QRCodeSVG 
+                      value={paymentAddress} 
+                      size={140}
+                      level="H"
+                      includeMargin={false}
+                    />
+                  </div>
+                </div>
+                
+                <p className="font-mono text-white text-sm break-all text-center">{paymentAddress}</p>
                 
                 <div className="flex items-center justify-between mt-4 pt-4 border-t border-[#334155]">
                   <div>
