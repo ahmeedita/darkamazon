@@ -17,6 +17,7 @@ export function Cart() {
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [currentOrderId, setCurrentOrderId] = useState<string>('');
+  const [currentOrderTotal, setCurrentOrderTotal] = useState<number>(0);
   const [deliveryEmail, setDeliveryEmail] = useState('');
   const [recipientEmail, setRecipientEmail] = useState('');
 
@@ -39,9 +40,11 @@ export function Cart() {
       return;
     }
     
-    // Generate order ID
+    // Generate order ID and save current total before clearing
     const orderId = `order_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const orderTotal = total;
     setCurrentOrderId(orderId);
+    setCurrentOrderTotal(orderTotal);
     
     // Reserve credit cards when proceeding to checkout
     const cardItems = items.filter(item => item.type === 'card');
@@ -51,7 +54,7 @@ export function Cart() {
     }
     
     // Create order with pending status using the same orderId
-    addOrder([...items], total, orderId);
+    addOrder([...items], orderTotal, orderId);
     
     // Clear cart immediately after order is created
     clearCart();
@@ -212,7 +215,7 @@ export function Cart() {
       <CryptoPaymentModal
         isOpen={showPaymentModal}
         onClose={() => setShowPaymentModal(false)}
-        total={total}
+        total={currentOrderTotal}
         orderId={currentOrderId}
         onPaymentInitiated={handlePaymentInitiated}
         deliveryEmail={deliveryEmail}
