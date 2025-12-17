@@ -26,7 +26,7 @@ export function Features() {
     {
       icon: MessageCircle,
       title: '24/7 Support',
-      description: 'Round-the-clock customer support via our dedicated Telegram channel',
+      description: 'Round-the-clock customer support via live chat',
       color: 'text-success-medium',
       bgColor: 'bg-success-medium/20',
     },
@@ -51,7 +51,7 @@ export function Features() {
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
           <h2 className="font-display text-4xl font-bold text-foreground mb-4">
-            Why Choose DARK AMAZON?
+            Why Choose torbuy?
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             Experience the difference with our premium marketplace features

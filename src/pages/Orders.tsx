@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Crown, ArrowLeft, Clock, CheckCircle, XCircle, Package, CreditCard, X } from 'lucide-react';
+import { ArrowLeft, Clock, CheckCircle, XCircle, Package, CreditCard, X } from 'lucide-react';
+import { TorLogo } from '@/components/TorLogo';
 import { useOrders, Order } from '@/contexts/OrderContext';
 import { CryptoPaymentModal } from '@/components/CryptoPaymentModal';
 import { releaseCards } from '@/lib/cardGenerator';
@@ -103,9 +104,9 @@ export default function Orders() {
         <div className="container mx-auto px-4 py-3 md:py-4">
           <div className="flex items-center justify-between">
             <Link to="/" className="flex items-center space-x-2">
-              <Crown className="w-6 h-6 md:w-8 md:h-8 text-primary" />
+              <TorLogo className="w-6 h-6 md:w-8 md:h-8 text-primary" />
               <div>
-                <h1 className="font-display text-lg md:text-2xl font-bold text-primary">DARK AMAZON</h1>
+                <h1 className="font-display text-lg md:text-2xl font-bold text-primary">torbuy</h1>
                 <p className="text-[10px] md:text-xs text-muted-foreground hidden sm:block">Premium Marketplace</p>
               </div>
             </Link>

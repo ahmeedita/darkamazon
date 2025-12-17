@@ -17,7 +17,7 @@ const CRYPTO_IDS = {
   XMR: 'monero',
 };
 
-const STORAGE_KEY = 'darkAmazon_cryptoPrices';
+const STORAGE_KEY = 'torbuy_cryptoPrices';
 const CACHE_DURATION = 60 * 60 * 1000; // 1 hour in milliseconds
 
 export function CryptoTicker() {
