@@ -180,7 +180,7 @@ function generateCard(
 }
 
 // Storage key for reserved cards
-const RESERVED_CARDS_KEY = 'darkAmazon_reservedCards';
+const RESERVED_CARDS_KEY = 'torbuy_reservedCards';
 
 interface ReservedCard {
   cardId: string;

@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Crown, LogOut, User, MessageCircle, Package, Menu, X } from 'lucide-react';
+import { LogOut, User, MessageCircle, Package, Menu, X } from 'lucide-react';
+import { TorLogo } from './TorLogo';
 import { AuthModal } from './AuthModal';
 import { Cart } from './Cart';
 import { useAuth } from '@/contexts/AuthContext';
@@ -16,16 +17,22 @@ export function Header() {
     setMobileMenuOpen(false);
   };
 
+  const openTawkChat = () => {
+    if (window.Tawk_API) {
+      window.Tawk_API.maximize();
+    }
+  };
+
   return (
     <>
       <header className="fixed top-0 w-full z-50 bg-background/95 backdrop-blur-sm border-b border-border">
         <div className="container mx-auto px-4 py-3 md:py-4">
           <div className="flex items-center justify-between">
             <Link to="/" className="flex items-center space-x-2">
-              <Crown className="w-6 h-6 md:w-8 md:h-8 text-primary" />
+              <TorLogo className="w-6 h-6 md:w-8 md:h-8 text-primary" />
               <div>
                 <h1 className="font-display text-lg md:text-2xl font-bold text-primary">
-                  DARK AMAZON
+                  torbuy
                 </h1>
                 <p className="text-[10px] md:text-xs text-muted-foreground hidden sm:block">Premium Marketplace</p>
               </div>
@@ -42,10 +49,10 @@ export function Header() {
                 <Package className="w-4 h-4" />
                 <span>Orders</span>
               </Link>
-              <a href="https://t.me/Darkamazoncc" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-1 text-foreground hover:text-primary transition-colors font-medium text-sm">
+              <button onClick={openTawkChat} className="flex items-center space-x-1 text-foreground hover:text-primary transition-colors font-medium text-sm">
                 <MessageCircle className="w-4 h-4" />
                 <span>Support</span>
-              </a>
+              </button>
             </nav>
 
             <div className="flex items-center space-x-2 md:space-x-4">
@@ -116,15 +123,16 @@ export function Header() {
                   <Package className="w-4 h-4" />
                   <span>Orders</span>
                 </Link>
-                <a 
-                  href="https://t.me/Darkamazoncc"
-                  target="_blank" 
-                  rel="noopener noreferrer" 
+                <button 
+                  onClick={() => {
+                    openTawkChat();
+                    setMobileMenuOpen(false);
+                  }}
                   className="flex items-center space-x-2 text-foreground hover:text-primary transition-colors font-medium text-sm"
                 >
                   <MessageCircle className="w-4 h-4" />
                   <span>Support</span>
-                </a>
+                </button>
               </nav>
               
               {profile ? (
@@ -167,4 +175,13 @@ export function Header() {
       />
     </>
   );
+}
+
+// Add type declaration for Tawk_API
+declare global {
+  interface Window {
+    Tawk_API?: {
+      maximize: () => void;
+    };
+  }
 }

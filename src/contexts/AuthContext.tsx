@@ -155,7 +155,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     // Create fake email from username for Supabase Auth
-    const fakeEmail = `${normalizedUsername}@darkamazon.local`;
+    const fakeEmail = `${normalizedUsername}@torbuy.local`;
     
     // Sign up with Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -202,7 +202,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signIn = async (username: string, password: string): Promise<{ error: string | null }> => {
     const normalizedUsername = username.toLowerCase().trim();
-    const fakeEmail = `${normalizedUsername}@darkamazon.local`;
+    const fakeEmail = `${normalizedUsername}@torbuy.local`;
     
     const { error } = await supabase.auth.signInWithPassword({
       email: fakeEmail,

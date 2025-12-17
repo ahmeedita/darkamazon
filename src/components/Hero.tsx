@@ -1,11 +1,18 @@
 import { Button } from '@/components/ui/button';
-import { Crown, Shield, Zap, MessageCircle } from 'lucide-react';
+import { Shield, Zap, MessageCircle } from 'lucide-react';
+import { TorLogo } from './TorLogo';
 
 interface HeroProps {
   onGetStarted: () => void;
 }
 
 export function Hero({ onGetStarted }: HeroProps) {
+  const openTawkChat = () => {
+    if (window.Tawk_API) {
+      window.Tawk_API.maximize();
+    }
+  };
+
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background gradients */}
@@ -17,13 +24,13 @@ export function Hero({ onGetStarted }: HeroProps) {
         <div className="max-w-4xl mx-auto">
           <div className="flex justify-center mb-6 md:mb-8">
             <div className="p-3 md:p-4 bg-primary/20 rounded-full">
-              <Crown className="w-10 h-10 md:w-16 md:h-16 text-primary" />
+              <TorLogo className="w-10 h-10 md:w-16 md:h-16 text-primary" />
             </div>
           </div>
 
           <h1 className="font-display text-3xl sm:text-4xl md:text-7xl font-bold text-foreground mb-4 md:mb-6">
             <span className="bg-gradient-gold bg-clip-text text-transparent">
-              DARK AMAZON
+              torbuy
             </span>
           </h1>
 
@@ -41,7 +48,7 @@ export function Hero({ onGetStarted }: HeroProps) {
             <Button
               variant="outline"
               className="border-border text-foreground hover:bg-secondary text-sm md:text-lg px-6 md:px-8 py-3 md:py-4"
-              onClick={() => window.open('https://t.me/Darkamazoncc', '_blank')}
+              onClick={openTawkChat}
             >
               <MessageCircle className="w-4 h-4 md:w-5 md:h-5 mr-2" />
               24/7 Support
@@ -70,7 +77,7 @@ export function Hero({ onGetStarted }: HeroProps) {
                 <MessageCircle className="w-6 h-6 md:w-8 md:h-8 text-accent" />
               </div>
               <h3 className="font-bold text-foreground mb-1 md:mb-2 text-sm md:text-base">24/7 Support</h3>
-              <p className="text-muted-foreground text-xs md:text-sm">Telegram support always available</p>
+              <p className="text-muted-foreground text-xs md:text-sm">Live chat support always available</p>
             </div>
           </div>
         </div>

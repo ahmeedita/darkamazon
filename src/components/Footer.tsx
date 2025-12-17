@@ -1,12 +1,19 @@
-import { Crown, MessageCircle, Shield } from 'lucide-react';
+import { MessageCircle, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { TorLogo } from './TorLogo';
 import { BitcoinLogo, EthereumLogo, LitecoinLogo, MoneroLogo } from './BrandLogos';
 
 export function Footer() {
   const handleNewsletterSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Newsletter signup logic could go here
+  };
+
+  const openTawkChat = () => {
+    if (window.Tawk_API) {
+      window.Tawk_API.maximize();
+    }
   };
 
   return (
@@ -16,10 +23,10 @@ export function Footer() {
           {/* Brand Section */}
           <div className="md:col-span-2">
             <div className="flex items-center space-x-2 mb-4">
-              <Crown className="w-6 h-6 md:w-8 md:h-8 text-primary" />
+              <TorLogo className="w-6 h-6 md:w-8 md:h-8 text-primary" />
               <div>
                 <h3 className="font-display text-xl md:text-2xl font-bold text-primary">
-                  DARK AMAZON
+                  torbuy
                 </h3>
                 <p className="text-xs text-muted-foreground">Premium Marketplace</p>
               </div>
@@ -28,15 +35,13 @@ export function Footer() {
               Your trusted source for premium card marketplace services with guaranteed success rates and instant delivery.
             </p>
             <div className="space-y-2">
-              <a
-                href="https://t.me/Darkamazoncc"
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                onClick={openTawkChat}
                 className="flex items-center space-x-2 text-foreground hover:text-primary transition-colors text-sm md:text-base"
               >
                 <MessageCircle className="w-4 h-4" />
-                <span>@Darkamazoncc on Telegram</span>
-              </a>
+                <span>Live Chat Support</span>
+              </button>
               <p className="text-xs md:text-sm text-muted-foreground">24/7 Support Available</p>
             </div>
           </div>
@@ -56,9 +61,9 @@ export function Footer() {
                 </a>
               </li>
               <li>
-                <a href="https://t.me/Darkamazoncc" target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                <button onClick={openTawkChat} className="text-sm text-muted-foreground hover:text-primary transition-colors">
                   Support
-                </a>
+                </button>
               </li>
             </ul>
           </div>
@@ -117,7 +122,7 @@ export function Footer() {
               </div>
             </div>
             <div className="text-xs md:text-sm text-muted-foreground">
-              © 2024 DARK AMAZON. Premium Marketplace.
+              © 2024 torbuy. Premium Marketplace.
             </div>
           </div>
         </div>

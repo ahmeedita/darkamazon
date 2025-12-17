@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Lock, User, Eye, EyeOff } from 'lucide-react';
+import { Lock, User, Eye, EyeOff, Copy, Check, Key } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -13,7 +13,23 @@ interface AuthModalProps {
   onSuccess: () => void;
 }
 
-type AuthMode = 'login' | 'signup';
+type AuthMode = 'login' | 'signup' | 'recovery-phrase';
+
+// Generate a random recovery phrase
+const generateRecoveryPhrase = (): string => {
+  const words = [
+    'apple', 'banana', 'cherry', 'dragon', 'eagle', 'falcon', 'grape', 'honey',
+    'iron', 'jungle', 'knight', 'lemon', 'mango', 'noble', 'ocean', 'pearl',
+    'queen', 'river', 'storm', 'tiger', 'unity', 'violet', 'winter', 'xenon',
+    'yellow', 'zebra', 'anchor', 'bridge', 'castle', 'dawn', 'ember', 'frost'
+  ];
+  const phrase: string[] = [];
+  for (let i = 0; i < 6; i++) {
+    const randomIndex = Math.floor(Math.random() * words.length);
+    phrase.push(words[randomIndex]);
+  }
+  return phrase.join(' ');
+};
 
 export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
   const [mode, setMode] = useState<AuthMode>('login');
@@ -24,6 +40,8 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
     confirmPassword: '',
   });
   const [loading, setLoading] = useState(false);
+  const [recoveryPhrase, setRecoveryPhrase] = useState('');
+  const [copied, setCopied] = useState(false);
   const { toast } = useToast();
   const { signUp, signIn } = useAuth();
 
@@ -33,11 +51,38 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
       password: '',
       confirmPassword: '',
     });
+    setRecoveryPhrase('');
+    setCopied(false);
   };
 
   const handleModeChange = (newMode: AuthMode) => {
     setMode(newMode);
     resetForm();
+  };
+
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(recoveryPhrase);
+      setCopied(true);
+      toast({
+        title: 'Copied!',
+        description: 'Recovery phrase copied to clipboard',
+      });
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      toast({
+        title: 'Copy failed',
+        description: 'Please manually copy the recovery phrase',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleContinueAfterRecovery = () => {
+    onSuccess();
+    onClose();
+    resetForm();
+    setMode('login');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -66,7 +111,7 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
         } else {
           toast({
             title: 'Welcome back!',
-            description: 'Successfully logged in to DARK AMAZON',
+            description: 'Successfully logged in to torbuy',
           });
           onSuccess();
           onClose();
@@ -111,13 +156,14 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
             variant: 'destructive',
           });
         } else {
+          // Generate and show recovery phrase
+          const phrase = generateRecoveryPhrase();
+          setRecoveryPhrase(phrase);
+          setMode('recovery-phrase');
           toast({
             title: 'Account created!',
-            description: 'Welcome to DARK AMAZON premium marketplace',
+            description: 'Please save your recovery phrase',
           });
-          onSuccess();
-          onClose();
-          resetForm();
         }
       }
     } catch (error) {
@@ -130,6 +176,57 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
       setLoading(false);
     }
   };
+
+  const renderRecoveryPhraseScreen = () => (
+    <div className="space-y-6 mt-6">
+      <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
+        <p className="text-sm text-red-300 text-center font-medium">
+          ⚠️ IMPORTANT: Save this recovery phrase!
+        </p>
+        <p className="text-xs text-red-200/70 text-center mt-1">
+          This is the ONLY way to recover your account if you forget your username or password.
+        </p>
+      </div>
+
+      <div className="space-y-4">
+        <div className="flex items-center justify-center space-x-2 mb-2">
+          <Key className="w-5 h-5 text-primary" />
+          <span className="text-foreground font-medium">Your Recovery Phrase</span>
+        </div>
+        
+        <div className="relative p-4 bg-background border border-border rounded-lg">
+          <p className="text-center text-foreground font-mono text-lg break-words">
+            {recoveryPhrase}
+          </p>
+          <button
+            onClick={copyToClipboard}
+            className="absolute top-2 right-2 p-2 hover:bg-secondary rounded-md transition-colors"
+          >
+            {copied ? (
+              <Check className="w-4 h-4 text-success-high" />
+            ) : (
+              <Copy className="w-4 h-4 text-muted-foreground" />
+            )}
+          </button>
+        </div>
+
+        <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg">
+          <ul className="text-xs text-amber-200 space-y-1">
+            <li>• Write down this phrase and store it safely</li>
+            <li>• Never share it with anyone</li>
+            <li>• You'll need this to recover your account</li>
+          </ul>
+        </div>
+      </div>
+
+      <Button
+        onClick={handleContinueAfterRecovery}
+        className="w-full btn-gold text-lg py-6"
+      >
+        I've Saved My Recovery Phrase
+      </Button>
+    </div>
+  );
 
   const renderLoginForm = () => (
     <form onSubmit={handleSubmit} className="space-y-6 mt-6">
@@ -299,7 +396,8 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
   const getTitle = () => {
     switch (mode) {
       case 'login': return 'Welcome Back';
-      case 'signup': return 'Join DARK AMAZON';
+      case 'signup': return 'Join torbuy';
+      case 'recovery-phrase': return 'Save Your Recovery Phrase';
     }
   };
 
@@ -314,6 +412,7 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
 
         {mode === 'login' && renderLoginForm()}
         {mode === 'signup' && renderSignupForm()}
+        {mode === 'recovery-phrase' && renderRecoveryPhraseScreen()}
       </DialogContent>
     </Dialog>
   );
