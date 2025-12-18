@@ -114,6 +114,7 @@ export type Database = {
           created_at: string
           id: string
           last_active_at: string
+          recovery_phrase_hash: string | null
           username: string
         }
         Insert: {
@@ -121,6 +122,7 @@ export type Database = {
           created_at?: string
           id?: string
           last_active_at?: string
+          recovery_phrase_hash?: string | null
           username: string
         }
         Update: {
@@ -128,6 +130,7 @@ export type Database = {
           created_at?: string
           id?: string
           last_active_at?: string
+          recovery_phrase_hash?: string | null
           username?: string
         }
         Relationships: []

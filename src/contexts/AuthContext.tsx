@@ -8,6 +8,7 @@ export interface UserProfile {
   auth_user_id: string;
   last_active_at: string;
   created_at: string;
+  recovery_phrase_hash?: string;
 }
 
 interface AuthContextType {
@@ -15,15 +16,42 @@ interface AuthContextType {
   session: Session | null;
   profile: UserProfile | null;
   loading: boolean;
-  signUp: (username: string, password: string) => Promise<{ error: string | null }>;
+  signUp: (username: string, password: string) => Promise<{ error: string | null; recoveryPhrase?: string }>;
   signIn: (username: string, password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
+  recoverAccount: (recoveryPhrase: string, newPassword: string) => Promise<{ error: string | null; username?: string }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Inactivity timeout in milliseconds (2 hours)
 const INACTIVITY_TIMEOUT = 2 * 60 * 60 * 1000;
+
+// Simple hash function for recovery phrase (SHA-256)
+const hashRecoveryPhrase = async (phrase: string): Promise<string> => {
+  const normalized = phrase.toLowerCase().trim().replace(/\s+/g, ' ');
+  const encoder = new TextEncoder();
+  const data = encoder.encode(normalized);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+};
+
+// Generate a random recovery phrase
+const generateRecoveryPhrase = (): string => {
+  const words = [
+    'apple', 'banana', 'cherry', 'dragon', 'eagle', 'falcon', 'grape', 'honey',
+    'iron', 'jungle', 'knight', 'lemon', 'mango', 'noble', 'ocean', 'pearl',
+    'queen', 'river', 'storm', 'tiger', 'unity', 'violet', 'winter', 'xenon',
+    'yellow', 'zebra', 'anchor', 'bridge', 'castle', 'dawn', 'ember', 'frost'
+  ];
+  const phrase: string[] = [];
+  for (let i = 0; i < 6; i++) {
+    const randomIndex = Math.floor(Math.random() * words.length);
+    phrase.push(words[randomIndex]);
+  }
+  return phrase.join(' ');
+};
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -114,10 +142,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchProfile = async (authUserId: string) => {
     try {
-      // Only select non-sensitive columns
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, username, auth_user_id, last_active_at, created_at')
+        .select('id, username, auth_user_id, last_active_at, created_at, recovery_phrase_hash')
         .eq('auth_user_id', authUserId)
         .single();
 
@@ -140,7 +167,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const signUp = async (username: string, password: string): Promise<{ error: string | null }> => {
+  const signUp = async (username: string, password: string): Promise<{ error: string | null; recoveryPhrase?: string }> => {
     const normalizedUsername = username.toLowerCase().trim();
     
     // Check if username already exists
@@ -153,6 +180,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (existingProfile) {
       return { error: 'Username already taken' };
     }
+
+    // Generate recovery phrase
+    const recoveryPhrase = generateRecoveryPhrase();
+    const recoveryPhraseHash = await hashRecoveryPhrase(recoveryPhrase);
 
     // Create fake email from username for Supabase Auth
     const fakeEmail = `${normalizedUsername}@darkamazon.local`;
@@ -177,12 +208,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { error: 'Failed to create account' };
     }
 
-    // Create profile linked to auth user
+    // Create profile linked to auth user with recovery phrase hash
     const { error: profileError } = await supabase
       .from('profiles')
       .insert({
         auth_user_id: authData.user.id,
         username: normalizedUsername,
+        recovery_phrase_hash: recoveryPhraseHash,
       });
 
     if (profileError) {
@@ -197,7 +229,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Fetch the profile
     await fetchProfile(authData.user.id);
 
-    return { error: null };
+    return { error: null, recoveryPhrase };
   };
 
   const signIn = async (username: string, password: string): Promise<{ error: string | null }> => {
@@ -220,13 +252,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error: 'Invalid username or password' };
   };
 
+  const recoverAccount = async (recoveryPhrase: string, newPassword: string): Promise<{ error: string | null; username?: string }> => {
+    try {
+      const response = await supabase.functions.invoke('recover-account', {
+        body: { recoveryPhrase }
+      });
+
+      if (response.error) {
+        return { error: 'Recovery failed. Please try again.' };
+      }
+
+      const data = response.data;
+      
+      if (data.error) {
+        return { error: data.error };
+      }
+
+      return { 
+        error: null, 
+        username: data.username 
+      };
+    } catch (error) {
+      console.error('Recovery error:', error);
+      return { error: 'Recovery failed. Please try again.' };
+    }
+  };
+
   const signOut = async () => {
     await supabase.auth.signOut();
     setUser(null);
     setSession(null);
     setProfile(null);
   };
-
 
   return (
     <AuthContext.Provider value={{
@@ -237,6 +294,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signUp,
       signIn,
       signOut,
+      recoverAccount,
     }}>
       {children}
     </AuthContext.Provider>
