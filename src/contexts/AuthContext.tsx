@@ -202,18 +202,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signIn = async (username: string, password: string): Promise<{ error: string | null }> => {
     const normalizedUsername = username.toLowerCase().trim();
-    const fakeEmail = `${normalizedUsername}@darkamazon.local`;
-    
-    const { error } = await supabase.auth.signInWithPassword({
-      email: fakeEmail,
-      password,
-    });
 
-    if (error) {
-      return { error: 'Invalid username or password' };
+    const domains = ['darkamazon.local', 'torbuy.local'];
+
+    for (const domain of domains) {
+      const fakeEmail = `${normalizedUsername}@${domain}`;
+      const { error } = await supabase.auth.signInWithPassword({
+        email: fakeEmail,
+        password,
+      });
+
+      if (!error) {
+        return { error: null };
+      }
     }
 
-    return { error: null };
+    return { error: 'Invalid username or password' };
   };
 
   const signOut = async () => {
