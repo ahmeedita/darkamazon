@@ -13,7 +13,7 @@ interface AuthModalProps {
   onSuccess: () => void;
 }
 
-type AuthMode = 'login' | 'signup' | 'recovery-phrase';
+type AuthMode = 'login' | 'signup' | 'recovery-phrase' | 'forgot-password';
 
 // Generate a random recovery phrase
 const generateRecoveryPhrase = (): string => {
@@ -289,14 +289,23 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
         {loading ? <div className="spinner-gold" /> : 'Sign In'}
       </Button>
 
-      <div className="text-center">
+      <div className="text-center space-y-2">
         <button
           type="button"
-          onClick={() => handleModeChange('signup')}
-          className="text-primary hover:text-accent transition-colors font-medium text-sm"
+          onClick={() => handleModeChange('forgot-password')}
+          className="text-muted-foreground hover:text-foreground transition-colors text-sm"
         >
-          Don't have an account? Sign up
+          Forgot username or password?
         </button>
+        <div>
+          <button
+            type="button"
+            onClick={() => handleModeChange('signup')}
+            className="text-primary hover:text-accent transition-colors font-medium text-sm"
+          >
+            Don't have an account? Sign up
+          </button>
+        </div>
       </div>
     </form>
   );
@@ -393,11 +402,70 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
     </form>
   );
 
+  const renderForgotPasswordForm = () => (
+    <div className="space-y-6 mt-6">
+      <div className="p-4 bg-primary/10 border border-primary/30 rounded-lg">
+        <p className="text-sm text-foreground text-center font-medium">
+          🔑 Account Recovery
+        </p>
+        <p className="text-xs text-muted-foreground text-center mt-2">
+          If you saved your recovery phrase during signup, you can use it to recover your account.
+        </p>
+      </div>
+
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="recovery-input" className="text-foreground font-medium">
+            Enter Recovery Phrase
+          </Label>
+          <div className="relative">
+            <Key className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              id="recovery-input"
+              type="text"
+              placeholder="Enter your 6-word recovery phrase"
+              className="pl-10 input-premium"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg">
+        <p className="text-xs text-amber-200 text-center">
+          ⚠️ Recovery phrase verification coming soon. Contact support via live chat for immediate assistance.
+        </p>
+      </div>
+
+      <Button
+        onClick={() => {
+          // Open Tawk.to chat for support
+          if (typeof window !== 'undefined' && (window as any).Tawk_API) {
+            (window as any).Tawk_API.maximize();
+          }
+        }}
+        className="w-full btn-gold text-lg py-6"
+      >
+        Contact Support
+      </Button>
+
+      <div className="text-center">
+        <button
+          type="button"
+          onClick={() => handleModeChange('login')}
+          className="text-primary hover:text-accent transition-colors font-medium text-sm"
+        >
+          Back to Sign In
+        </button>
+      </div>
+    </div>
+  );
+
   const getTitle = () => {
     switch (mode) {
       case 'login': return 'Welcome Back';
       case 'signup': return 'Join torbuy';
       case 'recovery-phrase': return 'Save Your Recovery Phrase';
+      case 'forgot-password': return 'Recover Account';
     }
   };
 
@@ -413,6 +481,7 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
         {mode === 'login' && renderLoginForm()}
         {mode === 'signup' && renderSignupForm()}
         {mode === 'recovery-phrase' && renderRecoveryPhraseScreen()}
+        {mode === 'forgot-password' && renderForgotPasswordForm()}
       </DialogContent>
     </Dialog>
   );
