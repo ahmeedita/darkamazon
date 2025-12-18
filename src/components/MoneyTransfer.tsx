@@ -62,8 +62,10 @@ export function MoneyTransfer({ product }: MoneyTransferProps) {
   };
 
   const handleAddToCart = () => {
+    // Generate unique ID for each transfer instance to allow duplicates
+    const uniqueId = `transfer-${product.id}-${Date.now()}`;
     addItem({
-      id: product.id,
+      id: uniqueId,
       type: 'transfer',
       name: `${product.provider} Transfer (${currency})`,
       price: product.price,

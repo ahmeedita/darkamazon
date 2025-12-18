@@ -45,8 +45,10 @@ export function GiftCard({ product }: GiftCardProps) {
   };
 
   const handleAddToCart = () => {
+    // Generate unique ID for each gift card instance to allow duplicates
+    const uniqueId = `giftcard-${product.id}-${Date.now()}`;
     addItem({
-      id: product.id,
+      id: uniqueId,
       type: 'giftcard',
       name: `${product.brand} Gift Card (${currency})`,
       price: product.price,
