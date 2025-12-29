@@ -142,30 +142,50 @@ serve(async (req: Request): Promise<Response> => {
       recipient_email: recipientEmail,
     });
 
+    console.log(`Calling NoKYCPay API for ${cryptoSymbol} payment...`);
+    
+    const requestBody = {
+      crypto_currency: cryptoSymbol,
+      forward_address: forwardAddress,
+      webhook_payload: webhookPayload,
+      api_key: apiKey,
+    };
+    
+    console.log(`Request body (without api_key): ${JSON.stringify({ ...requestBody, api_key: '[REDACTED]' })}`);
+
     const nokycpayResponse = await fetch("https://nokycpay.me/api/createAddress", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Accept": "application/json",
       },
-      body: JSON.stringify({
-        crypto_currency: cryptoSymbol,
-        forward_address: forwardAddress,
-        webhook_payload: webhookPayload,
-        api_key: apiKey,
-      }),
+      body: JSON.stringify(requestBody),
     });
 
+    const responseText = await nokycpayResponse.text();
+    console.log(`NoKYCPay response status: ${nokycpayResponse.status}`);
+    console.log(`NoKYCPay response body: ${responseText}`);
+
     if (!nokycpayResponse.ok) {
-      console.error("Payment API error");
+      console.error(`Payment API error: ${nokycpayResponse.status} - ${responseText}`);
       return new Response(
-        JSON.stringify({ error: "Failed to create payment address" }),
+        JSON.stringify({ error: "Failed to create payment address", details: responseText }),
         { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
 
-    const nokycpayData = await nokycpayResponse.json();
-    console.log("Payment created successfully");
+    let nokycpayData;
+    try {
+      nokycpayData = JSON.parse(responseText);
+    } catch (parseError) {
+      console.error(`Failed to parse NoKYCPay response: ${responseText}`);
+      return new Response(
+        JSON.stringify({ error: "Invalid response from payment service" }),
+        { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+    
+    console.log(`Payment created successfully: ${nokycpayData.generated_address}`);
 
     return new Response(
       JSON.stringify({
