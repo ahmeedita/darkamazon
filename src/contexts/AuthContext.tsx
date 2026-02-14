@@ -146,11 +146,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .from('profiles')
         .select('id, username, auth_user_id, last_active_at, created_at, recovery_phrase_hash')
         .eq('auth_user_id', authUserId)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error fetching profile:', error);
         setProfile(null);
+      } else if (!data) {
+        // Auto-create profile if missing (handles legacy accounts)
+        console.log('Profile missing, auto-creating...');
+        const { data: authUser } = await supabase.auth.getUser();
+        const email = authUser?.user?.email || '';
+        const username = email.split('@')[0] || `user_${authUserId.slice(0, 8)}`;
+        
+        const { data: newProfile, error: insertError } = await supabase
+          .from('profiles')
+          .insert({
+            auth_user_id: authUserId,
+            username: username,
+          })
+          .select('id, username, auth_user_id, last_active_at, created_at, recovery_phrase_hash')
+          .maybeSingle();
+
+        if (insertError) {
+          // If username conflict, try with a suffix
+          const fallbackUsername = `${username}_${Date.now().toString(36)}`;
+          const { data: fallbackProfile, error: fallbackError } = await supabase
+            .from('profiles')
+            .insert({
+              auth_user_id: authUserId,
+              username: fallbackUsername,
+            })
+            .select('id, username, auth_user_id, last_active_at, created_at, recovery_phrase_hash')
+            .maybeSingle();
+
+          if (fallbackError) {
+            console.error('Failed to auto-create profile:', fallbackError);
+            setProfile(null);
+          } else {
+            setProfile(fallbackProfile as UserProfile);
+          }
+        } else {
+          setProfile(newProfile as UserProfile);
+        }
       } else {
         setProfile(data as UserProfile);
         // Update last active time
