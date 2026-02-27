@@ -110,7 +110,7 @@ export type Database = {
       }
       profiles: {
         Row: {
-          auth_user_id: string | null
+          auth_user_id: string
           created_at: string
           id: string
           last_active_at: string
@@ -118,7 +118,7 @@ export type Database = {
           username: string
         }
         Insert: {
-          auth_user_id?: string | null
+          auth_user_id: string
           created_at?: string
           id?: string
           last_active_at?: string
@@ -126,7 +126,7 @@ export type Database = {
           username: string
         }
         Update: {
-          auth_user_id?: string | null
+          auth_user_id?: string
           created_at?: string
           id?: string
           last_active_at?: string
