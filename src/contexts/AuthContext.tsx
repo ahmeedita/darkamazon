@@ -59,6 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const inactivityTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const profileFetchInFlightRef = useRef<string | null>(null);
 
   const handleInactivityLogout = useCallback(async () => {
     if (user) {
@@ -130,9 +131,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchProfile(session.user.id);
-      } else {
+      if (!session?.user) {
         setLoading(false);
       }
     });
@@ -141,6 +140,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const fetchProfile = async (authUserId: string) => {
+    if (profileFetchInFlightRef.current === authUserId) return;
+    profileFetchInFlightRef.current = authUserId;
+
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -153,40 +155,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setProfile(null);
       } else if (!data) {
         // Auto-create profile if missing (handles legacy accounts)
-        console.log('Profile missing, auto-creating...');
         const { data: authUser } = await supabase.auth.getUser();
         const email = authUser?.user?.email || '';
-        const username = email.split('@')[0] || `user_${authUserId.slice(0, 8)}`;
-        
-        const { data: newProfile, error: insertError } = await supabase
-          .from('profiles')
-          .insert({
-            auth_user_id: authUserId,
-            username: username,
-          })
-          .select('id, username, auth_user_id, last_active_at, created_at, recovery_phrase_hash')
-          .maybeSingle();
+        const baseUsername = email.split('@')[0] || `user_${authUserId.slice(0, 8)}`;
 
-        if (insertError) {
-          // If username conflict, try with a suffix
-          const fallbackUsername = `${username}_${Date.now().toString(36)}`;
-          const { data: fallbackProfile, error: fallbackError } = await supabase
+        const createProfile = async (username: string) =>
+          supabase
             .from('profiles')
-            .insert({
-              auth_user_id: authUserId,
-              username: fallbackUsername,
-            })
+            .upsert(
+              {
+                auth_user_id: authUserId,
+                username,
+              },
+              {
+                onConflict: 'auth_user_id',
+              }
+            )
             .select('id, username, auth_user_id, last_active_at, created_at, recovery_phrase_hash')
             .maybeSingle();
 
-          if (fallbackError) {
-            console.error('Failed to auto-create profile:', fallbackError);
-            setProfile(null);
-          } else {
-            setProfile(fallbackProfile as UserProfile);
-          }
+        let { data: createdProfile, error: createError } = await createProfile(baseUsername);
+
+        // Username conflict with another account; retry with deterministic suffix.
+        if (createError?.code === '23505') {
+          const fallbackUsername = `${baseUsername}_${authUserId.slice(0, 6)}`;
+          const retry = await createProfile(fallbackUsername);
+          createdProfile = retry.data;
+          createError = retry.error;
+        }
+
+        if (createError || !createdProfile) {
+          console.error('Failed to auto-create profile:', createError);
+          setProfile(null);
         } else {
-          setProfile(newProfile as UserProfile);
+          setProfile(createdProfile as UserProfile);
         }
       } else {
         setProfile(data as UserProfile);
@@ -200,6 +202,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error('Error fetching profile:', error);
       setProfile(null);
     } finally {
+      if (profileFetchInFlightRef.current === authUserId) {
+        profileFetchInFlightRef.current = null;
+      }
       setLoading(false);
     }
   };
@@ -212,7 +217,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .from('profiles')
       .select('id')
       .eq('username', normalizedUsername)
-      .single();
+      .maybeSingle();
 
     if (existingProfile) {
       return { error: 'Username already taken' };
@@ -245,18 +250,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { error: 'Failed to create account' };
     }
 
-    // Create profile linked to auth user with recovery phrase hash
+    // Create/update profile linked to auth user with recovery phrase hash
     const { error: profileError } = await supabase
       .from('profiles')
-      .insert({
-        auth_user_id: authData.user.id,
-        username: normalizedUsername,
-        recovery_phrase_hash: recoveryPhraseHash,
-      });
+      .upsert(
+        {
+          auth_user_id: authData.user.id,
+          username: normalizedUsername,
+          recovery_phrase_hash: recoveryPhraseHash,
+        },
+        {
+          onConflict: 'auth_user_id',
+        }
+      );
 
     if (profileError) {
-      // Clean up auth user if profile creation fails
-      await supabase.auth.signOut();
       if (profileError.code === '23505') {
         return { error: 'Username already taken' };
       }
