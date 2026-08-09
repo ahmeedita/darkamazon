@@ -24,10 +24,13 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    
-    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
 
-    const { recoveryPhrase }: { recoveryPhrase: string } = await req.json();
+    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+
+    const { recoveryPhrase, newPassword }: { recoveryPhrase: string; newPassword?: string } =
+      await req.json();
 
     if (!recoveryPhrase || typeof recoveryPhrase !== 'string') {
       return new Response(
@@ -41,6 +44,13 @@ serve(async (req) => {
     if (words.length !== 6) {
       return new Response(
         JSON.stringify({ error: "Invalid recovery phrase format. Must be 6 words." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (newPassword !== undefined && (typeof newPassword !== 'string' || newPassword.length < 6)) {
+      return new Response(
+        JSON.stringify({ error: "Password must be at least 6 characters." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -72,10 +82,26 @@ serve(async (req) => {
 
     const matchedProfile = profiles[0];
 
+    // If a new password was supplied, reset it so the user can sign in again.
+    if (newPassword) {
+      const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
+        matchedProfile.auth_user_id,
+        { password: newPassword }
+      );
+
+      if (updateError) {
+        console.error('Password reset error:', updateError);
+        return new Response(
+          JSON.stringify({ error: "Recovery failed. Please try again." }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
+
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         success: true,
-        username: matchedProfile.username 
+        username: matchedProfile.username
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
