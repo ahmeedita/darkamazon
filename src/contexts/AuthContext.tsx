@@ -211,68 +211,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signUp = async (username: string, password: string): Promise<{ error: string | null; recoveryPhrase?: string }> => {
     const normalizedUsername = username.toLowerCase().trim();
-    
-    // Check if username already exists
-    const { data: existingProfile } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('username', normalizedUsername)
-      .maybeSingle();
-
-    if (existingProfile) {
-      return { error: 'Username already taken' };
-    }
 
     // Generate recovery phrase
     const recoveryPhrase = generateRecoveryPhrase();
     const recoveryPhraseHash = await hashRecoveryPhrase(recoveryPhrase);
 
-    // Create fake email from username for Supabase Auth
-    const fakeEmail = `${normalizedUsername}@darkamazon.local`;
-    
-    // Sign up with Supabase Auth
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email: fakeEmail,
-      password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/`,
+    // Create the account server-side. The edge function uses the service role to
+    // create an already-confirmed auth user (no confirmation email, no rate
+    // limits) plus the linked profile row.
+    const { data, error } = await supabase.functions.invoke('auth-signup', {
+      body: {
+        username: normalizedUsername,
+        password,
+        recoveryPhraseHash,
       },
     });
 
-    if (authError) {
-      if (authError.message.includes('already registered')) {
-        return { error: 'Username already taken' };
-      }
-      return { error: authError.message };
-    }
-
-    if (!authData.user) {
-      return { error: 'Failed to create account' };
-    }
-
-    // Create/update profile linked to auth user with recovery phrase hash
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .upsert(
-        {
-          auth_user_id: authData.user.id,
-          username: normalizedUsername,
-          recovery_phrase_hash: recoveryPhraseHash,
-        },
-        {
-          onConflict: 'auth_user_id',
+    // Non-2xx responses surface as FunctionsHttpError; the body still carries our message.
+    if (error) {
+      let message = 'Signup failed. Please try again.';
+      const ctx = (error as { context?: Response }).context;
+      if (ctx && typeof ctx.json === 'function') {
+        try {
+          const body = await ctx.json();
+          if (body?.error) message = body.error;
+        } catch {
+          /* ignore parse errors, keep generic message */
         }
-      );
-
-    if (profileError) {
-      if (profileError.code === '23505') {
-        return { error: 'Username already taken' };
       }
-      return { error: profileError.message };
+      return { error: message };
     }
 
-    // Fetch the profile
-    await fetchProfile(authData.user.id);
+    if (data?.error) {
+      return { error: data.error };
+    }
+
+    // Account exists and is confirmed; sign in to establish a session.
+    const { error: signInError } = await signIn(normalizedUsername, password);
+    if (signInError) {
+      return { error: signInError };
+    }
 
     return { error: null, recoveryPhrase };
   };
@@ -280,7 +258,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signIn = async (username: string, password: string): Promise<{ error: string | null }> => {
     const normalizedUsername = username.toLowerCase().trim();
 
-    const domains = ['darkamazon.local', 'torbuy.local'];
+    // Primary domain is a valid TLD (Supabase rejects .local). Legacy .local
+    // domains are kept as fallbacks for any pre-existing accounts.
+    const domains = ['darkamazon.com', 'darkamazon.local', 'torbuy.local'];
 
     for (const domain of domains) {
       const fakeEmail = `${normalizedUsername}@${domain}`;
@@ -300,7 +280,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const recoverAccount = async (recoveryPhrase: string, newPassword: string): Promise<{ error: string | null; username?: string }> => {
     try {
       const response = await supabase.functions.invoke('recover-account', {
-        body: { recoveryPhrase }
+        body: { recoveryPhrase, newPassword }
       });
 
       if (response.error) {
@@ -311,6 +291,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       if (data.error) {
         return { error: data.error };
+      }
+
+      // Password has been reset server-side; sign the user in with it.
+      const { error: signInError } = await signIn(data.username, newPassword);
+      if (signInError) {
+        return { error: signInError };
       }
 
       return { 
