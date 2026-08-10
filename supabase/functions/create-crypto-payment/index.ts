@@ -10,7 +10,7 @@ const corsHeaders = {
 const WALLET_ADDRESSES: Record<string, string> = {
   btc: "1PcxUzNDBv5WgmLnYNoAdC5qQBdaGuFhUR",
   ltc: "LYPP7kKneHqaVXjQvedQf9fqsu5zfHSgzS",
-  xmr: "4ADuT2s1u6sctreg5Tm1Ce5jir9gpeNRAZhHGWs2LK1cLobktsBw3iDWb4KDzPoHwhV4cX8EDMwZ7EQP4RcWu1Y2Dg8WeJB",
+  xmr: "4AisX61b85X6HD9g1tUCEtcZ1Tzo6XyoPPARKJK3751F84inbnLmRPGA7HqjFmWkqm85WLRRJ8Lmo3A7KyFK29L7BuUCaER",
   eth: "0x4f1ab5d41e31c9f13968a65bfb04b97528b32c2a",
 };
 
