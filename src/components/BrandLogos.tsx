@@ -105,6 +105,12 @@ export const SkrillLogo = ({ className = "w-16 h-16" }: { className?: string }) 
   </svg>
 );
 
+export const BinanceLogo = ({ className = "w-16 h-16" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 126 126" fill="none">
+    <path d="M38.9 53.2 63 29.1l24.1 24.1 14-14L63 1 24.9 39.1l14 14.1zM1 63l14-14 14 14-14 14L1 63zm37.9 9.8L63 96.9l24.1-24.1 14 14L63 125 24.9 86.9l-.1-.1 14.1-14zM97 63l14-14 14 14-14 14-14-14zM77.2 63 63 48.7 52.5 59.2l-1.2 1.2-2.5 2.5v.1L63 77.3 77.2 63.1v-.1z" fill="#F0B90B"/>
+  </svg>
+);
+
 // Crypto logos
 export const BitcoinLogo = ({ className = "w-6 h-6" }: { className?: string }) => (
   <svg className={className} viewBox="0 0 32 32" fill="none">
