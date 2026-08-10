@@ -108,7 +108,22 @@ export function CryptoPaymentModal({
         body: { symbol, orderId, amount: total, deliveryEmail, recipientEmail },
       });
 
-      if (error) throw error;
+      if (error) {
+        // supabase-js hides the real message behind a generic "non-2xx status"
+        // error. Try to read the actual JSON body returned by the edge function.
+        let detailedMessage = error.message;
+        try {
+          const context = (error as any).context;
+          if (context && typeof context.json === 'function') {
+            const body = await context.json();
+            detailedMessage = body?.details || body?.error || detailedMessage;
+          }
+        } catch {
+          // ignore parse failures, fall back to generic message
+        }
+        console.log('[v0] create-crypto-payment failed:', detailedMessage);
+        throw new Error(detailedMessage);
+      }
 
       if (data?.paymentAddress) {
         setPaymentAddress(data.paymentAddress);
