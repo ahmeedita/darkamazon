@@ -135,53 +135,56 @@ serve(async (req: Request): Promise<Response> => {
       console.error("Error fetching crypto price");
     }
 
-    const webhookPayload = JSON.stringify({
-      order_id: orderId,
-      amount: amount,
-      delivery_email: deliveryEmail,
-      recipient_email: recipientEmail,
-    });
-
     console.log(`Calling NoKYCPay API for ${cryptoSymbol} payment...`);
-    
+
+    // Free plan does not use webhooks — send only the required fields.
     const requestBody = {
       crypto_currency: cryptoSymbol,
       forward_address: forwardAddress,
-      webhook_payload: webhookPayload,
       api_key: apiKey,
     };
     
     console.log(`Request body (without api_key): ${JSON.stringify({ ...requestBody, api_key: '[REDACTED]' })}`);
 
-    const nokycpayResponse = await fetch("https://nokycpay.me/api/createAddress", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-      },
-      body: JSON.stringify(requestBody),
-    });
+    let nokycpayResponse: Response;
+    try {
+      nokycpayResponse = await fetch("https://nokycpay.me/api/createAddress", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+        body: JSON.stringify(requestBody),
+      });
+    } catch (fetchError) {
+      console.error(`NoKYCPay fetch failed: ${fetchError instanceof Error ? fetchError.message : String(fetchError)}`);
+      return new Response(
+        JSON.stringify({ error: "Unable to reach payment provider. Please try again." }),
+        { status: 502, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
 
     const responseText = await nokycpayResponse.text();
     console.log(`NoKYCPay response status: ${nokycpayResponse.status}`);
     console.log(`NoKYCPay response body: ${responseText}`);
 
-    if (!nokycpayResponse.ok) {
-      console.error(`Payment API error: ${nokycpayResponse.status} - ${responseText}`);
-      return new Response(
-        JSON.stringify({ error: "Failed to create payment address", details: responseText }),
-        { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
-    }
-
-    let nokycpayData;
+    let nokycpayData: Record<string, unknown>;
     try {
       nokycpayData = JSON.parse(responseText);
-    } catch (parseError) {
+    } catch {
       console.error(`Failed to parse NoKYCPay response: ${responseText}`);
       return new Response(
         JSON.stringify({ error: "Invalid response from payment service" }),
-        { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        { status: 502, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    if (!nokycpayResponse.ok || typeof nokycpayData.generated_address !== 'string') {
+      const message = typeof nokycpayData.message === 'string' ? nokycpayData.message : 'Failed to create payment address';
+      console.error(`Payment API error: ${nokycpayResponse.status} - ${message}`);
+      return new Response(
+        JSON.stringify({ error: message }),
+        { status: 502, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
     
@@ -201,9 +204,10 @@ serve(async (req: Request): Promise<Response> => {
       { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
   } catch (error: unknown) {
-    console.error("Payment creation failed");
+    const detail = error instanceof Error ? error.message : String(error);
+    console.error(`Payment creation failed: ${detail}`);
     return new Response(
-      JSON.stringify({ error: "Payment processing failed" }),
+      JSON.stringify({ error: `Payment processing failed: ${detail}` }),
       { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
   }

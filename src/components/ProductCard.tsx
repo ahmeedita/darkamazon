@@ -48,10 +48,10 @@ export function ProductCard({ product }: ProductCardProps) {
 
   const getPrice = (tier: string) => {
     switch (tier) {
-      case 'premium': return 50;
-      case 'standard': return 40;
-      case 'basic': return 29.99;
-      default: return 29.99;
+      case 'premium': return 99;
+      case 'standard': return 74;
+      case 'basic': return 50;
+      default: return 50;
     }
   };
 

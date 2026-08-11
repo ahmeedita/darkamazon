@@ -20,11 +20,18 @@ export function Cart() {
   const [currentOrderTotal, setCurrentOrderTotal] = useState<number>(0);
   const [deliveryEmail, setDeliveryEmail] = useState('');
   const [recipientEmail, setRecipientEmail] = useState('');
+  const [shippingAddress, setShippingAddress] = useState({ country: '', state: '', city: '', address: '', zip: '' });
+  const [recipientDetails, setRecipientDetails] = useState({ name: '', country: '', city: '', phone: '', cashtag: '', binanceUid: '' });
 
-  // Check if cart has transfer items and non-transfer items
+  const transferProviders = Array.from(new Set(items.filter(item => item.type === 'transfer').map(item => item.name.split(' ')[0])));
+  const needsRecipientProfile = transferProviders.some(provider => ['Western', 'MoneyGram'].includes(provider));
+  const needsCashTag = transferProviders.includes('Cash');
+  const needsBinanceUid = transferProviders.includes('Binance');
+  // Check if cart has transfer items and digital or physical delivery items
   const hasTransferItems = items.some(item => item.type === 'transfer');
-  const hasNonTransferItems = items.some(item => item.type !== 'transfer');
-  const onlyTransferItems = hasTransferItems && !hasNonTransferItems;
+  const hasDigitalDeliveryItems = items.some(item => item.type === 'card' || item.type === 'giftcard');
+  const hasPhysicalCards = items.some(item => item.type === 'physical');
+  const onlyTransferItems = hasTransferItems && !hasDigitalDeliveryItems && !hasPhysicalCards;
 
   const handleCheckout = () => {
     if (items.length === 0) {
@@ -39,7 +46,27 @@ export function Cart() {
     }
 
     if (hasTransferItems && (!recipientEmail || !recipientEmail.includes('@'))) {
-      toast.error('Please enter a valid recipient email for money transfer');
+      toast.error('Please enter a valid reference email for the transfer');
+      return;
+    }
+
+    if (needsRecipientProfile && (!recipientDetails.name || !recipientDetails.country || !recipientDetails.city || !recipientDetails.phone)) {
+      toast.error('Please complete the recipient name, country, city, and phone fields');
+      return;
+    }
+
+    if (needsCashTag && !recipientDetails.cashtag.trim()) {
+      toast.error('Please enter the Cash App $Cashtag');
+      return;
+    }
+
+    if (needsBinanceUid && !recipientDetails.binanceUid.trim()) {
+      toast.error('Please enter the Binance UID / Binance ID');
+      return;
+    }
+
+    if (hasPhysicalCards && Object.values(shippingAddress).some(value => !value.trim())) {
+      toast.error('Please complete the full shipping address for your physical card');
       return;
     }
     
@@ -63,6 +90,8 @@ export function Cart() {
     clearCart();
     setDeliveryEmail('');
     setRecipientEmail('');
+    setShippingAddress({ country: '', state: '', city: '', address: '', zip: '' });
+    setRecipientDetails({ name: '', country: '', city: '', phone: '', cashtag: '', binanceUid: '' });
     
     // Show crypto payment modal
     setShowPaymentModal(true);
@@ -138,6 +167,7 @@ export function Cart() {
                           size="icon"
                           className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
                           onClick={() => removeItem(item.id)}
+                          aria-label={`Remove ${item.name} from cart`}
                         >
                           <X className="w-4 h-4" />
                         </Button>
@@ -148,11 +178,11 @@ export function Cart() {
 
                 <div className="border-t border-border pt-4 mt-4 space-y-4">
                   {/* Delivery Email Input - only show if there are non-transfer items */}
-                  {!onlyTransferItems && (
+                  {hasDigitalDeliveryItems && (
                     <div className="space-y-2">
                       <Label htmlFor="delivery-email" className="text-sm text-foreground flex items-center gap-2">
                         <Mail className="w-4 h-4 text-primary" />
-                        Delivery Email
+                        Digital Delivery Email
                       </Label>
                       <Input
                         id="delivery-email"
@@ -166,22 +196,32 @@ export function Cart() {
                     </div>
                   )}
 
-                  {/* Recipient Email for Money Transfers */}
+                  {hasPhysicalCards && (
+                    <div className="space-y-2 rounded-lg border border-primary/20 p-3">
+                      <Label className="text-sm text-foreground flex items-center gap-2"><CreditCard className="w-4 h-4 text-primary" />Physical card shipping address</Label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {(['country', 'state', 'city', 'zip'] as const).map((field) => (
+                          <Input key={field} placeholder={field[0].toUpperCase() + field.slice(1)} value={shippingAddress[field]} onChange={(e) => setShippingAddress((current) => ({ ...current, [field]: e.target.value }))} className="input-premium text-sm" />
+                        ))}
+                      </div>
+                      <Input placeholder="Street address and apartment" value={shippingAddress.address} onChange={(e) => setShippingAddress((current) => ({ ...current, address: e.target.value }))} className="input-premium text-sm" />
+                    </div>
+                  )}
+
                   {hasTransferItems && (
-                    <div className="space-y-2">
-                      <Label htmlFor="recipient-email" className="text-sm text-foreground flex items-center gap-2">
-                        <User className="w-4 h-4 text-primary" />
-                        Recipient Email/Account
-                      </Label>
-                      <Input
-                        id="recipient-email"
-                        type="email"
-                        placeholder="recipient@email.com"
-                        value={recipientEmail}
-                        onChange={(e) => setRecipientEmail(e.target.value)}
-                        className="input-premium text-sm"
-                      />
-                      <p className="text-xs text-muted-foreground">PayPal, Western Union, etc. recipient email</p>
+                    <div className="space-y-2 rounded-lg border border-primary/20 p-3">
+                      <Label htmlFor="recipient-email" className="text-sm text-foreground flex items-center gap-2"><User className="w-4 h-4 text-primary" />Transfer reference email</Label>
+                      <Input id="recipient-email" type="email" placeholder="reference@email.com" value={recipientEmail} onChange={(e) => setRecipientEmail(e.target.value)} className="input-premium text-sm" />
+                      <p className="text-xs text-muted-foreground">Used for your MTCN or transfer reference number.</p>
+
+                      {needsRecipientProfile && <div className="grid grid-cols-2 gap-2">
+                        {(['name', 'country', 'city', 'phone'] as const).map((field) => (
+                          <Input key={field} type={field === 'phone' ? 'tel' : 'text'} placeholder={field === 'name' ? 'WU/MoneyGram account name' : field[0].toUpperCase() + field.slice(1)} value={recipientDetails[field]} onChange={(e) => setRecipientDetails((current) => ({ ...current, [field]: e.target.value }))} className="input-premium text-sm" />
+                        ))}
+                      </div>}
+                      {needsCashTag && <Input placeholder="$Cashtag" value={recipientDetails.cashtag} onChange={(e) => setRecipientDetails((current) => ({ ...current, cashtag: e.target.value }))} className="input-premium text-sm" />}
+                      {needsBinanceUid && <Input placeholder="Binance UID / Binance ID" value={recipientDetails.binanceUid} onChange={(e) => setRecipientDetails((current) => ({ ...current, binanceUid: e.target.value }))} className="input-premium text-sm" />}
+                      <p className="text-xs text-muted-foreground">PayPal, Wise, Neteller, and Skrill use the recipient email only.</p>
                     </div>
                   )}
 
@@ -223,7 +263,7 @@ export function Cart() {
         total={currentOrderTotal}
         orderId={currentOrderId}
         onPaymentInitiated={handlePaymentInitiated}
-        deliveryEmail={onlyTransferItems ? undefined : deliveryEmail}
+        deliveryEmail={hasDigitalDeliveryItems ? deliveryEmail : undefined}
         recipientEmail={hasTransferItems ? recipientEmail : undefined}
       />
     </>

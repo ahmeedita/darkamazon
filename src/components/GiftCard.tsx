@@ -70,7 +70,7 @@ export function GiftCard({ product }: GiftCardProps) {
           </Badge>
         </div>
         <span className="font-display text-lg md:text-xl font-bold text-primary">
-          ${product.price}
+          {currencySymbol}{product.price}
         </span>
       </div>
 
@@ -97,7 +97,7 @@ export function GiftCard({ product }: GiftCardProps) {
 
         <div className="text-center">
           <p className="text-xs md:text-sm text-muted-foreground">
-            You pay only <span className="text-primary font-bold">${product.price}</span> for a <span className="text-green-500 font-bold">{currencySymbol}{product.value}</span> gift card
+            You pay only <span className="text-primary font-bold">{currencySymbol}{product.price}</span> for a <span className="text-green-500 font-bold">{currencySymbol}{product.value}</span> gift card
           </p>
         </div>
       </div>

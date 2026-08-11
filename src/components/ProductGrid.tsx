@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { ProductCard } from './ProductCard';
 import { GiftCard } from './GiftCard';
 import { MoneyTransfer } from './MoneyTransfer';
+import { PhysicalCard } from './PhysicalCard';
 import { Button } from '@/components/ui/button';
 import { Filter } from 'lucide-react';
 import { getAvailableCards } from '@/lib/cardGenerator';
@@ -10,100 +11,62 @@ interface ProductGridProps {
   user: any;
 }
 
-// Gift Cards - USD
-const giftCardProducts = [
-  // Amazon USD
-  { id: 'gc1', brand: 'Amazon', value: 500, price: 75, tier: 'giftcard' as const, currency: 'USD' as const },
-  { id: 'gc4', brand: 'Amazon', value: 1000, price: 99.99, tier: 'giftcard' as const, currency: 'USD' as const },
-  { id: 'gc7', brand: 'Amazon', value: 1500, price: 125, tier: 'giftcard' as const, currency: 'USD' as const },
-  { id: 'gc10', brand: 'Amazon', value: 2000, price: 150, tier: 'giftcard' as const, currency: 'USD' as const },
-  // Amazon EUR
-  { id: 'gc-eur1', brand: 'Amazon', value: 500, price: 75, tier: 'giftcard' as const, currency: 'EUR' as const },
-  { id: 'gc-eur2', brand: 'Amazon', value: 1000, price: 99.99, tier: 'giftcard' as const, currency: 'EUR' as const },
-  { id: 'gc-eur3', brand: 'Amazon', value: 1500, price: 125, tier: 'giftcard' as const, currency: 'EUR' as const },
-  { id: 'gc-eur4', brand: 'Amazon', value: 2000, price: 150, tier: 'giftcard' as const, currency: 'EUR' as const },
-  // Target USD
-  { id: 'gc2', brand: 'Target', value: 500, price: 75, tier: 'giftcard' as const, currency: 'USD' as const },
-  { id: 'gc5', brand: 'Target', value: 1000, price: 99.99, tier: 'giftcard' as const, currency: 'USD' as const },
-  { id: 'gc8', brand: 'Target', value: 1500, price: 125, tier: 'giftcard' as const, currency: 'USD' as const },
-  { id: 'gc11', brand: 'Target', value: 2000, price: 150, tier: 'giftcard' as const, currency: 'USD' as const },
-  // eBay USD
-  { id: 'gc3', brand: 'eBay', value: 500, price: 75, tier: 'giftcard' as const, currency: 'USD' as const },
-  { id: 'gc6', brand: 'eBay', value: 1000, price: 99.99, tier: 'giftcard' as const, currency: 'USD' as const },
-  { id: 'gc9', brand: 'eBay', value: 1500, price: 125, tier: 'giftcard' as const, currency: 'USD' as const },
-  { id: 'gc12', brand: 'eBay', value: 2000, price: 150, tier: 'giftcard' as const, currency: 'USD' as const },
-  // Apple USD
-  { id: 'gc-apple1', brand: 'Apple', value: 500, price: 75, tier: 'giftcard' as const, currency: 'USD' as const },
-  { id: 'gc-apple2', brand: 'Apple', value: 1000, price: 99.99, tier: 'giftcard' as const, currency: 'USD' as const },
-  { id: 'gc-apple3', brand: 'Apple', value: 1500, price: 125, tier: 'giftcard' as const, currency: 'USD' as const },
-  { id: 'gc-apple4', brand: 'Apple', value: 2000, price: 150, tier: 'giftcard' as const, currency: 'USD' as const },
-  // Apple EUR
-  { id: 'gc-apple-eur1', brand: 'Apple', value: 500, price: 75, tier: 'giftcard' as const, currency: 'EUR' as const },
-  { id: 'gc-apple-eur2', brand: 'Apple', value: 1000, price: 99.99, tier: 'giftcard' as const, currency: 'EUR' as const },
-  { id: 'gc-apple-eur3', brand: 'Apple', value: 1500, price: 125, tier: 'giftcard' as const, currency: 'EUR' as const },
-  { id: 'gc-apple-eur4', brand: 'Apple', value: 2000, price: 150, tier: 'giftcard' as const, currency: 'EUR' as const },
-  // Steam USD
-  { id: 'gc-steam1', brand: 'Steam', value: 500, price: 75, tier: 'giftcard' as const, currency: 'USD' as const },
-  { id: 'gc-steam2', brand: 'Steam', value: 1000, price: 99.99, tier: 'giftcard' as const, currency: 'USD' as const },
-  { id: 'gc-steam3', brand: 'Steam', value: 1500, price: 125, tier: 'giftcard' as const, currency: 'USD' as const },
-  { id: 'gc-steam4', brand: 'Steam', value: 2000, price: 150, tier: 'giftcard' as const, currency: 'USD' as const },
-  // Steam EUR
-  { id: 'gc-steam-eur1', brand: 'Steam', value: 500, price: 75, tier: 'giftcard' as const, currency: 'EUR' as const },
-  { id: 'gc-steam-eur2', brand: 'Steam', value: 1000, price: 99.99, tier: 'giftcard' as const, currency: 'EUR' as const },
-  { id: 'gc-steam-eur3', brand: 'Steam', value: 1500, price: 125, tier: 'giftcard' as const, currency: 'EUR' as const },
-  { id: 'gc-steam-eur4', brand: 'Steam', value: 2000, price: 150, tier: 'giftcard' as const, currency: 'EUR' as const },
+// Gift card pricing tiers (same for USD and EUR)
+const giftCardTiers = [
+  { value: 500, price: 100 },
+  { value: 1500, price: 199 },
+  { value: 5000, price: 500 },
+  { value: 8500, price: 799 },
 ];
 
-// Money Transfers
-const moneyTransferProducts = [
-  // PayPal USD
-  { id: 'mt1', provider: 'PayPal', value: 500, price: 70, tier: 'transfer' as const, currency: 'USD' as const },
-  { id: 'mt5', provider: 'PayPal', value: 1500, price: 140, tier: 'transfer' as const, currency: 'USD' as const },
-  { id: 'mt9', provider: 'PayPal', value: 2500, price: 199.99, tier: 'transfer' as const, currency: 'USD' as const },
-  // PayPal EUR
-  { id: 'mt-paypal-eur1', provider: 'PayPal', value: 500, price: 70, tier: 'transfer' as const, currency: 'EUR' as const },
-  { id: 'mt-paypal-eur2', provider: 'PayPal', value: 1500, price: 140, tier: 'transfer' as const, currency: 'EUR' as const },
-  { id: 'mt-paypal-eur3', provider: 'PayPal', value: 2500, price: 199.99, tier: 'transfer' as const, currency: 'EUR' as const },
-  // Western Union USD
-  { id: 'mt2', provider: 'Western Union', value: 500, price: 70, tier: 'transfer' as const, currency: 'USD' as const },
-  { id: 'mt6', provider: 'Western Union', value: 1500, price: 140, tier: 'transfer' as const, currency: 'USD' as const },
-  { id: 'mt10', provider: 'Western Union', value: 2500, price: 199.99, tier: 'transfer' as const, currency: 'USD' as const },
-  // MoneyGram USD
-  { id: 'mt3', provider: 'MoneyGram', value: 500, price: 70, tier: 'transfer' as const, currency: 'USD' as const },
-  { id: 'mt7', provider: 'MoneyGram', value: 1500, price: 140, tier: 'transfer' as const, currency: 'USD' as const },
-  { id: 'mt11', provider: 'MoneyGram', value: 2500, price: 199.99, tier: 'transfer' as const, currency: 'USD' as const },
-  // Cash App USD
-  { id: 'mt4', provider: 'Cash App', value: 500, price: 70, tier: 'transfer' as const, currency: 'USD' as const },
-  { id: 'mt8', provider: 'Cash App', value: 1500, price: 140, tier: 'transfer' as const, currency: 'USD' as const },
-  { id: 'mt12', provider: 'Cash App', value: 2500, price: 199.99, tier: 'transfer' as const, currency: 'USD' as const },
-  // Wise USD
-  { id: 'mt-wise1', provider: 'Wise', value: 500, price: 70, tier: 'transfer' as const, currency: 'USD' as const },
-  { id: 'mt-wise2', provider: 'Wise', value: 1500, price: 140, tier: 'transfer' as const, currency: 'USD' as const },
-  { id: 'mt-wise3', provider: 'Wise', value: 2500, price: 199.99, tier: 'transfer' as const, currency: 'USD' as const },
-  // Wise EUR
-  { id: 'mt-wise-eur1', provider: 'Wise', value: 500, price: 70, tier: 'transfer' as const, currency: 'EUR' as const },
-  { id: 'mt-wise-eur2', provider: 'Wise', value: 1500, price: 140, tier: 'transfer' as const, currency: 'EUR' as const },
-  { id: 'mt-wise-eur3', provider: 'Wise', value: 2500, price: 199.99, tier: 'transfer' as const, currency: 'EUR' as const },
-  // Neteller USD
-  { id: 'mt-neteller1', provider: 'Neteller', value: 500, price: 70, tier: 'transfer' as const, currency: 'USD' as const },
-  { id: 'mt-neteller2', provider: 'Neteller', value: 1500, price: 140, tier: 'transfer' as const, currency: 'USD' as const },
-  { id: 'mt-neteller3', provider: 'Neteller', value: 2500, price: 199.99, tier: 'transfer' as const, currency: 'USD' as const },
-  // Neteller EUR
-  { id: 'mt-neteller-eur1', provider: 'Neteller', value: 500, price: 70, tier: 'transfer' as const, currency: 'EUR' as const },
-  { id: 'mt-neteller-eur2', provider: 'Neteller', value: 1500, price: 140, tier: 'transfer' as const, currency: 'EUR' as const },
-  { id: 'mt-neteller-eur3', provider: 'Neteller', value: 2500, price: 199.99, tier: 'transfer' as const, currency: 'EUR' as const },
-  // Skrill USD
-  { id: 'mt-skrill1', provider: 'Skrill', value: 500, price: 70, tier: 'transfer' as const, currency: 'USD' as const },
-  { id: 'mt-skrill2', provider: 'Skrill', value: 1500, price: 140, tier: 'transfer' as const, currency: 'USD' as const },
-  { id: 'mt-skrill3', provider: 'Skrill', value: 2500, price: 199.99, tier: 'transfer' as const, currency: 'USD' as const },
-  // Skrill EUR
-  { id: 'mt-skrill-eur1', provider: 'Skrill', value: 500, price: 70, tier: 'transfer' as const, currency: 'EUR' as const },
-  { id: 'mt-skrill-eur2', provider: 'Skrill', value: 1500, price: 140, tier: 'transfer' as const, currency: 'EUR' as const },
-  { id: 'mt-skrill-eur3', provider: 'Skrill', value: 2500, price: 199.99, tier: 'transfer' as const, currency: 'EUR' as const },
+const giftCardBrands = ['Amazon', 'Target', 'eBay', 'Apple', 'Steam'];
+
+// Gift Cards - generated for every brand in both USD and EUR
+const giftCardProducts = giftCardBrands.flatMap((brand) =>
+  (['USD', 'EUR'] as const).flatMap((currency) =>
+    giftCardTiers.map((tier, index) => ({
+      id: `gc-${brand.toLowerCase()}-${currency.toLowerCase()}-${index}`,
+      brand,
+      value: tier.value,
+      price: tier.price,
+      tier: 'giftcard' as const,
+      currency,
+    }))
+  )
+);
+
+// Money transfer pricing tiers (same for USD and EUR)
+const transferTiers = [
+  { value: 1500, price: 200 },
+  { value: 5000, price: 500 },
+  { value: 8000, price: 799 },
+  { value: 15000, price: 1000 },
 ];
+
+const transferProviders = ['PayPal', 'Western Union', 'MoneyGram', 'Cash App', 'Wise', 'Neteller', 'Skrill', 'Binance'];
+
+const physicalCardProducts = [
+  { id: 'physical-3000', value: 3000, price: 200 },
+  { id: 'physical-6000', value: 6000, price: 500 },
+  { id: 'physical-15000', value: 15000, price: 1000 },
+];
+
+// Money Transfers - generated for every provider in both USD and EUR
+const moneyTransferProducts = transferProviders.flatMap((provider) =>
+  (['USD', 'EUR'] as const).flatMap((currency) =>
+    transferTiers.map((tier, index) => ({
+      id: `mt-${provider.toLowerCase().replace(/\s+/g, '-')}-${currency.toLowerCase()}-${index}`,
+      provider,
+      value: tier.value,
+      price: tier.price,
+      tier: 'transfer' as const,
+      currency,
+    }))
+  )
+);
 
 export function ProductGrid({ user }: ProductGridProps) {
-  const [filter, setFilter] = useState<'all' | 'premium' | 'standard' | 'basic' | 'giftcard' | 'transfer'>('all');
+  const [filter, setFilter] = useState<'all' | 'premium' | 'standard' | 'basic' | 'giftcard' | 'transfer' | 'physical'>('all');
   const [availableCards, setAvailableCards] = useState(() => getAvailableCards());
 
   // Refresh available cards every 5 seconds and on card release events
@@ -133,6 +96,10 @@ export function ProductGrid({ user }: ProductGridProps) {
 
   const filteredTransfers = filter === 'all' || filter === 'transfer'
     ? moneyTransferProducts
+    : [];
+
+  const filteredPhysicalCards = filter === 'all' || filter === 'physical'
+    ? physicalCardProducts
     : [];
 
   if (!user) {
@@ -174,7 +141,7 @@ export function ProductGrid({ user }: ProductGridProps) {
 
         <div className="flex justify-center mb-6 md:mb-8">
           <div className="flex flex-wrap justify-center gap-1 bg-card rounded-lg p-1 border border-border">
-            {['all', 'premium', 'standard', 'basic', 'giftcard', 'transfer'].map((filterOption) => (
+            {['all', 'premium', 'standard', 'basic', 'giftcard', 'transfer', 'physical'].map((filterOption) => (
               <Button
                 key={filterOption}
                 onClick={() => setFilter(filterOption as any)}
@@ -182,7 +149,7 @@ export function ProductGrid({ user }: ProductGridProps) {
                 className={`${filter === filterOption ? 'btn-gold' : 'text-muted-foreground hover:text-foreground'} text-xs md:text-sm px-2 md:px-3`}
                 size="sm"
               >
-                {filterOption === 'giftcard' ? 'Gift Cards' : filterOption === 'transfer' ? 'Transfers' : filterOption.charAt(0).toUpperCase() + filterOption.slice(1)}
+                {filterOption === 'giftcard' ? 'Gift Cards' : filterOption === 'transfer' ? 'Transfers' : filterOption === 'physical' ? 'Physical Cards' : filterOption.charAt(0).toUpperCase() + filterOption.slice(1)}
               </Button>
             ))}
           </div>
@@ -198,9 +165,12 @@ export function ProductGrid({ user }: ProductGridProps) {
           {filteredTransfers.map((transfer) => (
             <MoneyTransfer key={transfer.id} product={transfer} />
           ))}
+          {filteredPhysicalCards.map((physicalCard) => (
+            <PhysicalCard key={physicalCard.id} product={physicalCard} />
+          ))}
         </div>
 
-        {filteredProducts.length === 0 && filteredGiftCards.length === 0 && filteredTransfers.length === 0 && (
+        {filteredProducts.length === 0 && filteredGiftCards.length === 0 && filteredTransfers.length === 0 && filteredPhysicalCards.length === 0 && (
           <div className="text-center py-12">
             <p className="text-muted-foreground">No products found for the selected filter.</p>
           </div>

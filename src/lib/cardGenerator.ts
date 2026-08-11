@@ -147,17 +147,17 @@ function generateCard(
   switch (tier) {
     case 'premium':
       balanceRange = { min: 10000, max: 20000 };
-      price = 50;
+      price = 99;
       successRate = 98;
       break;
     case 'standard':
       balanceRange = { min: 2000, max: 9000 };
-      price = 40;
+      price = 74;
       successRate = 85;
       break;
     case 'basic':
       balanceRange = { min: 500, max: 1900 };
-      price = 29.99;
+      price = 50;
       successRate = 70;
       break;
   }

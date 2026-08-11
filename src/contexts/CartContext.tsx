@@ -5,7 +5,7 @@ import { useAuth } from './AuthContext';
 
 export interface CartItem {
   id: string;
-  type: 'card' | 'giftcard' | 'transfer';
+  type: 'card' | 'physical' | 'giftcard' | 'transfer';
   name: string;
   price: number;
   details?: string;
@@ -48,7 +48,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
         const cartItems: CartItem[] = (data || []).map(item => ({
           id: item.product_id,
-          type: item.product_type as 'card' | 'giftcard' | 'transfer',
+          type: item.product_type as CartItem['type'],
           name: item.name,
           price: Number(item.price),
           details: item.details && typeof item.details === 'object' && 'text' in item.details 

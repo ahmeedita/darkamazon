@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Banknote, DollarSign, ShoppingCart, Euro } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
 import { toast } from 'sonner';
-import { PayPalLogo, WesternUnionLogo, MoneyGramLogo, CashAppLogo, WiseLogo, NetellerLogo, SkrillLogo } from './BrandLogos';
+import { PayPalLogo, WesternUnionLogo, MoneyGramLogo, CashAppLogo, WiseLogo, NetellerLogo, SkrillLogo, BinanceLogo } from './BrandLogos';
 
 interface MoneyTransferProps {
   product: {
@@ -31,6 +31,7 @@ export function MoneyTransfer({ product }: MoneyTransferProps) {
       case 'wise': return 'text-[#00B9FF]';
       case 'neteller': return 'text-[#80AF20]';
       case 'skrill': return 'text-[#862165]';
+      case 'binance': return 'text-[#F0B90B]';
       default: return 'text-primary';
     }
   };
@@ -44,6 +45,7 @@ export function MoneyTransfer({ product }: MoneyTransferProps) {
       case 'wise': return 'bg-[#00B9FF]/10';
       case 'neteller': return 'bg-[#80AF20]/10';
       case 'skrill': return 'bg-[#862165]/10';
+      case 'binance': return 'bg-[#F0B90B]/10';
       default: return 'bg-primary/10';
     }
   };
@@ -57,6 +59,7 @@ export function MoneyTransfer({ product }: MoneyTransferProps) {
       case 'wise': return <WiseLogo className="w-20 h-10 md:w-24 md:h-12" />;
       case 'neteller': return <NetellerLogo className="w-24 h-10 md:w-28 md:h-12" />;
       case 'skrill': return <SkrillLogo className="w-20 h-10 md:w-24 md:h-12" />;
+      case 'binance': return <BinanceLogo className="w-10 h-10 md:w-12 md:h-12" />;
       default: return null;
     }
   };
@@ -87,7 +90,7 @@ export function MoneyTransfer({ product }: MoneyTransferProps) {
           </Badge>
         </div>
         <span className="font-display text-lg md:text-xl font-bold text-primary">
-          ${product.price}
+          {currencySymbol}{product.price}
         </span>
       </div>
 
@@ -114,7 +117,7 @@ export function MoneyTransfer({ product }: MoneyTransferProps) {
 
         <div className="text-center">
           <p className="text-xs md:text-sm text-muted-foreground">
-            You pay only <span className="text-primary font-bold">${product.price}</span> for a <span className="text-green-500 font-bold">{currencySymbol}{product.value}</span> transfer
+            You pay only <span className="text-primary font-bold">{currencySymbol}{product.price}</span> for a <span className="text-green-500 font-bold">{currencySymbol}{product.value}</span> transfer
           </p>
         </div>
       </div>

@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { LogOut, User, MessageCircle, Package, Menu, X } from 'lucide-react';
-import { TorLogo } from './TorLogo';
 import { AuthModal } from './AuthModal';
 import { Cart } from './Cart';
 import { useAuth } from '@/contexts/AuthContext';
@@ -29,11 +28,13 @@ export function Header() {
         <div className="container mx-auto px-4 py-3 md:py-4">
           <div className="flex items-center justify-between">
             <Link to="/" className="flex items-center space-x-2">
-              <TorLogo className="w-6 h-6 md:w-8 md:h-8 text-primary" />
+              <img
+                src="/torbuy-logo.jpg"
+                alt="torbuy Premium Card Marketplace"
+                className="h-10 w-10 md:h-12 md:w-12 rounded-md object-cover"
+              />
               <div>
-                <h1 className="font-display text-lg md:text-2xl font-bold text-primary">
-                  torbuy
-                </h1>
+                <h1 className="font-display text-lg md:text-2xl font-bold text-primary">torbuy</h1>
                 <p className="text-[10px] md:text-xs text-muted-foreground hidden sm:block">Premium Marketplace</p>
               </div>
             </Link>

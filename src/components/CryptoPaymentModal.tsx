@@ -13,7 +13,7 @@ interface CryptoPaymentModalProps {
   total: number;
   orderId: string;
   onPaymentInitiated: () => void;
-  deliveryEmail: string;
+  deliveryEmail?: string;
   recipientEmail?: string;
   initialCrypto?: string;
   initialAddress?: string;
@@ -105,10 +105,21 @@ export function CryptoPaymentModal({
       }
 
       const { data, error } = await supabase.functions.invoke('create-crypto-payment', {
-        body: { symbol, orderId, amount: total, deliveryEmail, recipientEmail },
+        body: { symbol: symbol.toLowerCase(), orderId, amount: total, deliveryEmail, recipientEmail },
       });
 
-      if (error) throw error;
+      if (error) {
+        // Supabase returns a generic message for non-2xx responses; the real
+        // error is in the response body accessible via error.context.
+        let detail = error.message || 'Payment service request failed';
+        try {
+          const body = await (error as any).context?.json?.();
+          if (body?.error) detail = body.error;
+        } catch {
+          // keep the generic message if the body can't be parsed
+        }
+        throw new Error(detail);
+      }
 
       if (data?.paymentAddress) {
         setPaymentAddress(data.paymentAddress);
