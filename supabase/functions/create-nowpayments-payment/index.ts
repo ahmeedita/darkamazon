@@ -6,15 +6,19 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Payout addresses per currency — where NOWPayments forwards received funds.
-const PAYOUT_ADDRESSES: Record<string, string> = {
-  btc: "1PcxUzNDBv5WgmLnYNoAdC5qQBdaGuFhUR",
-  ltc: "LYPP7kKneHqaVXjQvedQf9fqsu5zfHSgzS",
-  xmr: "4ADuT2s1u6sctreg5Tm1Ce5jir9gpeNRAZhHGWs2LK1cLobktsBw3iDWb4KDzPoHwhV4cX8EDMwZ7EQP4RcWu1Y2Dg8WeJB",
-  eth: "0x4f1ab5d41e31c9f13968a65bfb04b97528b32c2a",
-};
-
-const VALID_SYMBOLS = ["btc", "ltc", "xmr", "eth"];
+// Supported NOWPayments pay_currency tickers (must match the coins enabled on
+// the merchant account). Funds settle to the NOWPayments Custody balance and
+// are withdrawn from the dashboard, so no per-currency payout wallet is needed.
+const VALID_SYMBOLS = [
+  "btc",
+  "ltc",
+  "usdtbsc",   // USDT BEP20 (BNB Smart Chain)
+  "usdttrc20", // USDT TRC20 (Tron)
+  "usdterc20", // USDT ERC20 (Ethereum)
+  "xmr",
+  "bnbbsc",    // BNB (BNB Smart Chain)
+  "eth",
+];
 
 serve(async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
@@ -123,8 +127,6 @@ serve(async (req: Request): Promise<Response> => {
       price_amount: amount,
       price_currency: "usd",
       pay_currency: cryptoSymbol,
-      payout_address: PAYOUT_ADDRESSES[cryptoSymbol],
-      payout_currency: cryptoSymbol,
       order_id: orderId,
       order_description: `Order ${orderId}`,
       ipn_callback_url: ipnCallbackUrl,

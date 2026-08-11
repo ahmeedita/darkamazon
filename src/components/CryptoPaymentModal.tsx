@@ -20,11 +20,17 @@ interface CryptoPaymentModalProps {
   initialExpiresAt?: string;
 }
 
+// `code` is the NOWPayments pay_currency ticker sent to the API; `label` is the
+// short display name and `name` describes the coin/network shown to the user.
 const CRYPTO_OPTIONS = [
-  { symbol: 'BTC', name: 'Bitcoin', icon: 'https://cryptologos.cc/logos/bitcoin-btc-logo.svg' },
-  { symbol: 'ETH', name: 'Ethereum', icon: 'https://cryptologos.cc/logos/ethereum-eth-logo.svg' },
-  { symbol: 'LTC', name: 'Litecoin', icon: 'https://cryptologos.cc/logos/litecoin-ltc-logo.svg' },
-  { symbol: 'XMR', name: 'Monero', icon: 'https://cryptologos.cc/logos/monero-xmr-logo.svg' },
+  { code: 'btc', label: 'BTC', name: 'Bitcoin', icon: 'https://cryptologos.cc/logos/bitcoin-btc-logo.svg' },
+  { code: 'eth', label: 'ETH', name: 'Ethereum', icon: 'https://cryptologos.cc/logos/ethereum-eth-logo.svg' },
+  { code: 'bnbbsc', label: 'BNB', name: 'BNB Smart Chain', icon: 'https://cryptologos.cc/logos/bnb-bnb-logo.svg' },
+  { code: 'ltc', label: 'LTC', name: 'Litecoin', icon: 'https://cryptologos.cc/logos/litecoin-ltc-logo.svg' },
+  { code: 'xmr', label: 'XMR', name: 'Monero', icon: 'https://cryptologos.cc/logos/monero-xmr-logo.svg' },
+  { code: 'usdttrc20', label: 'USDT', name: 'Tether · TRC20', icon: 'https://cryptologos.cc/logos/tether-usdt-logo.svg' },
+  { code: 'usdterc20', label: 'USDT', name: 'Tether · ERC20', icon: 'https://cryptologos.cc/logos/tether-usdt-logo.svg' },
+  { code: 'usdtbsc', label: 'USDT', name: 'Tether · BEP20', icon: 'https://cryptologos.cc/logos/tether-usdt-logo.svg' },
 ];
 
 // Maps NOWPayments payment_status values to user-facing labels.
@@ -232,7 +238,8 @@ export function CryptoPaymentModal({
     setPaymentStatus('waiting');
   };
 
-  const selectedCryptoData = CRYPTO_OPTIONS.find(c => c.symbol === selectedCrypto);
+  const selectedCryptoData = CRYPTO_OPTIONS.find(c => c.code === selectedCrypto);
+  const selectedLabel = selectedCryptoData?.label ?? selectedCrypto?.toUpperCase() ?? '';
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -242,8 +249,8 @@ export function CryptoPaymentModal({
           <div className="flex items-center gap-2">
             {selectedCrypto && (
               <div className="bg-[#1e293b] px-3 py-1.5 rounded-md flex items-center gap-2">
-                <img src={selectedCryptoData?.icon} alt={selectedCrypto} className="w-4 h-4" />
-                <span className="text-white font-medium text-sm">{selectedCrypto}</span>
+                <img src={selectedCryptoData?.icon} alt={selectedLabel} className="w-4 h-4" />
+                <span className="text-white font-medium text-sm">{selectedCryptoData?.name ?? selectedLabel}</span>
                 <span className="text-muted-foreground text-sm">Payment</span>
               </div>
             )}
@@ -266,13 +273,13 @@ export function CryptoPaymentModal({
               <div className="grid grid-cols-2 gap-3">
                 {CRYPTO_OPTIONS.map((crypto) => (
                   <Button
-                    key={crypto.symbol}
+                    key={crypto.code}
                     variant="outline"
                     className="flex flex-col items-center gap-2 h-auto py-4 bg-[#1e293b]/50 border-[#334155] hover:border-primary hover:bg-[#1e293b]"
-                    onClick={() => handleSelectCrypto(crypto.symbol)}
+                    onClick={() => handleSelectCrypto(crypto.code)}
                   >
                     <img src={crypto.icon} alt={crypto.name} className="w-8 h-8" />
-                    <span className="font-medium text-white">{crypto.symbol}</span>
+                    <span className="font-medium text-white">{crypto.label}</span>
                     <span className="text-xs text-muted-foreground">{crypto.name}</span>
                   </Button>
                 ))}
@@ -310,7 +317,7 @@ export function CryptoPaymentModal({
                   </div>
                 </div>
                 <div className="bg-[#1e293b]/50 rounded-lg p-4 border border-[#334155]">
-                  <p className="text-primary text-xs mb-1">Amount ({selectedCrypto})</p>
+                  <p className="text-primary text-xs mb-1">Amount ({selectedLabel})</p>
                   <div className="flex items-center gap-2">
                     <span className="text-white text-lg font-bold font-mono">
                       {cryptoAmount || '...'} 
