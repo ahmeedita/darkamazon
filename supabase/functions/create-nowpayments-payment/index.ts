@@ -1,10 +1,29 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// Resolve a secret: prefer an edge-function env var if one is set, otherwise
+// fall back to the locked-down integration_secrets table (service-role only).
+async function getSecret(admin: SupabaseClient, key: string): Promise<string | null> {
+  const fromEnv = Deno.env.get(key);
+  if (fromEnv) return fromEnv;
+
+  const { data, error } = await admin
+    .from("integration_secrets")
+    .select("value")
+    .eq("key", key)
+    .single();
+
+  if (error || !data?.value) {
+    console.error(`Secret ${key} not found in env or integration_secrets: ${error?.message ?? "missing"}`);
+    return null;
+  }
+  return data.value as string;
+}
 
 // Supported NOWPayments pay_currency tickers (must match the coins enabled on
 // the merchant account). Funds settle to the NOWPayments Custody balance and
@@ -112,7 +131,7 @@ serve(async (req: Request): Promise<Response> => {
       );
     }
 
-    const apiKey = Deno.env.get("NOWPAYMENTS_API_KEY");
+    const apiKey = await getSecret(supabaseAdmin, "NOWPAYMENTS_API_KEY");
     if (!apiKey) {
       console.error("NOWPAYMENTS_API_KEY not configured");
       return new Response(

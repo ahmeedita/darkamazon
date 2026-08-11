@@ -1,10 +1,29 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-nowpayments-sig",
 };
+
+// Resolve a secret: prefer an edge-function env var if one is set, otherwise
+// fall back to the locked-down integration_secrets table (service-role only).
+async function getSecret(admin: SupabaseClient, key: string): Promise<string | null> {
+  const fromEnv = Deno.env.get(key);
+  if (fromEnv) return fromEnv;
+
+  const { data, error } = await admin
+    .from("integration_secrets")
+    .select("value")
+    .eq("key", key)
+    .single();
+
+  if (error || !data?.value) {
+    console.error(`Secret ${key} not found in env or integration_secrets: ${error?.message ?? "missing"}`);
+    return null;
+  }
+  return data.value as string;
+}
 
 // Recursively sort object keys, matching NOWPayments' documented signing scheme.
 function sortObject(obj: unknown): unknown {
@@ -53,7 +72,11 @@ serve(async (req: Request): Promise<Response> => {
   }
 
   try {
-    const ipnSecret = Deno.env.get("NOWPAYMENTS_IPN_SECRET");
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
+
+    const ipnSecret = await getSecret(supabaseAdmin, "NOWPAYMENTS_IPN_SECRET");
     if (!ipnSecret) {
       console.error("NOWPAYMENTS_IPN_SECRET not configured");
       return new Response(
@@ -108,10 +131,6 @@ serve(async (req: Request): Promise<Response> => {
     }
 
     console.log(`IPN verified for order ${orderId}, payment ${paymentId}, status: ${paymentStatus}`);
-
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
 
     const { data: order, error: fetchError } = await supabaseAdmin
       .from("orders")
