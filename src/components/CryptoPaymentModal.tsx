@@ -20,12 +20,31 @@ interface CryptoPaymentModalProps {
   initialExpiresAt?: string;
 }
 
+// `code` is the NOWPayments pay_currency ticker sent to the API; `label` is the
+// short display name and `name` describes the coin/network shown to the user.
 const CRYPTO_OPTIONS = [
-  { symbol: 'BTC', name: 'Bitcoin', icon: 'https://cryptologos.cc/logos/bitcoin-btc-logo.svg' },
-  { symbol: 'ETH', name: 'Ethereum', icon: 'https://cryptologos.cc/logos/ethereum-eth-logo.svg' },
-  { symbol: 'LTC', name: 'Litecoin', icon: 'https://cryptologos.cc/logos/litecoin-ltc-logo.svg' },
-  { symbol: 'XMR', name: 'Monero', icon: 'https://cryptologos.cc/logos/monero-xmr-logo.svg' },
+  { code: 'btc', label: 'BTC', name: 'Bitcoin', icon: 'https://cryptologos.cc/logos/bitcoin-btc-logo.svg' },
+  { code: 'eth', label: 'ETH', name: 'Ethereum', icon: 'https://cryptologos.cc/logos/ethereum-eth-logo.svg' },
+  { code: 'bnbbsc', label: 'BNB', name: 'BNB Smart Chain', icon: 'https://cryptologos.cc/logos/bnb-bnb-logo.svg' },
+  { code: 'ltc', label: 'LTC', name: 'Litecoin', icon: 'https://cryptologos.cc/logos/litecoin-ltc-logo.svg' },
+  { code: 'xmr', label: 'XMR', name: 'Monero', icon: 'https://cryptologos.cc/logos/monero-xmr-logo.svg' },
+  { code: 'usdttrc20', label: 'USDT', name: 'Tether · TRC20', icon: 'https://cryptologos.cc/logos/tether-usdt-logo.svg' },
+  { code: 'usdterc20', label: 'USDT', name: 'Tether · ERC20', icon: 'https://cryptologos.cc/logos/tether-usdt-logo.svg' },
+  { code: 'usdtbsc', label: 'USDT', name: 'Tether · BEP20', icon: 'https://cryptologos.cc/logos/tether-usdt-logo.svg' },
 ];
+
+// Maps NOWPayments payment_status values to user-facing labels.
+const STATUS_LABELS: Record<string, string> = {
+  waiting: 'Awaiting payment',
+  confirming: 'Confirming on network...',
+  confirmed: 'Confirmed! Finalizing order...',
+  sending: 'Processing payment...',
+  finished: 'Payment confirmed!',
+  partially_paid: 'Partial payment received',
+  failed: 'Payment failed',
+  expired: 'Payment expired',
+  refunded: 'Payment refunded',
+};
 
 export function CryptoPaymentModal({ 
   isOpen, 
@@ -49,6 +68,7 @@ export function CryptoPaymentModal({
   const [copiedCryptoAmount, setCopiedCryptoAmount] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState<string>('');
   const [progressPercent, setProgressPercent] = useState(100);
+  const [paymentStatus, setPaymentStatus] = useState<string>('waiting');
 
   // Set initial values when modal opens with resume data
   useEffect(() => {
@@ -91,6 +111,44 @@ export function CryptoPaymentModal({
     return () => clearInterval(interval);
   }, [expiresAt]);
 
+  // Poll the order's real status so we auto-confirm once the NOWPayments IPN
+  // callback marks it completed (or canceled), instead of trusting the user.
+  useEffect(() => {
+    if (!paymentAddress || !orderId) return;
+
+    let cancelled = false;
+
+    const checkStatus = async () => {
+      const { data, error } = await supabase
+        .from('orders')
+        .select('status, payment_status')
+        .eq('order_id', orderId)
+        .single();
+
+      if (cancelled || error || !data) return;
+
+      if (data.payment_status) setPaymentStatus(data.payment_status);
+
+      if (data.status === 'completed') {
+        toast.success('Payment confirmed! Your order is complete.');
+        localStorage.removeItem(`payment_${orderId}`);
+        onPaymentInitiated();
+        handleClose();
+      } else if (data.status === 'canceled') {
+        toast.error('Payment was not completed in time.');
+        localStorage.removeItem(`payment_${orderId}`);
+      }
+    };
+
+    checkStatus();
+    const statusInterval = setInterval(checkStatus, 5000);
+    return () => {
+      cancelled = true;
+      clearInterval(statusInterval);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paymentAddress, orderId]);
+
   const handleSelectCrypto = async (symbol: string) => {
     setSelectedCrypto(symbol);
     setIsLoading(true);
@@ -104,8 +162,8 @@ export function CryptoPaymentModal({
         throw new Error('Please log in to make a payment');
       }
 
-      const { data, error } = await supabase.functions.invoke('create-crypto-payment', {
-        body: { symbol: symbol.toLowerCase(), orderId, amount: total, deliveryEmail, recipientEmail },
+      const { data, error } = await supabase.functions.invoke('create-nowpayments-payment', {
+        body: { symbol: symbol.toLowerCase(), orderId, amount: total },
       });
 
       if (error) {
@@ -125,6 +183,7 @@ export function CryptoPaymentModal({
         setPaymentAddress(data.paymentAddress);
         setExpiresAt(data.expiresAt);
         setCryptoAmount(data.cryptoAmount || null);
+        setPaymentStatus(data.paymentStatus || 'waiting');
         
         // Store payment details in localStorage for order resume
         const paymentDetails = {
@@ -171,20 +230,16 @@ export function CryptoPaymentModal({
     }
   };
 
-  const handleConfirmPayment = () => {
-    toast.success('Payment initiated! Your order is now pending confirmation.');
-    onPaymentInitiated();
-    handleClose();
-  };
-
   const handleClose = () => {
     onClose();
     setSelectedCrypto(null);
     setPaymentAddress(null);
     setExpiresAt(null);
+    setPaymentStatus('waiting');
   };
 
-  const selectedCryptoData = CRYPTO_OPTIONS.find(c => c.symbol === selectedCrypto);
+  const selectedCryptoData = CRYPTO_OPTIONS.find(c => c.code === selectedCrypto);
+  const selectedLabel = selectedCryptoData?.label ?? selectedCrypto?.toUpperCase() ?? '';
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -194,8 +249,8 @@ export function CryptoPaymentModal({
           <div className="flex items-center gap-2">
             {selectedCrypto && (
               <div className="bg-[#1e293b] px-3 py-1.5 rounded-md flex items-center gap-2">
-                <img src={selectedCryptoData?.icon} alt={selectedCrypto} className="w-4 h-4" />
-                <span className="text-white font-medium text-sm">{selectedCrypto}</span>
+                <img src={selectedCryptoData?.icon} alt={selectedLabel} className="w-4 h-4" />
+                <span className="text-white font-medium text-sm">{selectedCryptoData?.name ?? selectedLabel}</span>
                 <span className="text-muted-foreground text-sm">Payment</span>
               </div>
             )}
@@ -218,13 +273,13 @@ export function CryptoPaymentModal({
               <div className="grid grid-cols-2 gap-3">
                 {CRYPTO_OPTIONS.map((crypto) => (
                   <Button
-                    key={crypto.symbol}
+                    key={crypto.code}
                     variant="outline"
                     className="flex flex-col items-center gap-2 h-auto py-4 bg-[#1e293b]/50 border-[#334155] hover:border-primary hover:bg-[#1e293b]"
-                    onClick={() => handleSelectCrypto(crypto.symbol)}
+                    onClick={() => handleSelectCrypto(crypto.code)}
                   >
                     <img src={crypto.icon} alt={crypto.name} className="w-8 h-8" />
-                    <span className="font-medium text-white">{crypto.symbol}</span>
+                    <span className="font-medium text-white">{crypto.label}</span>
                     <span className="text-xs text-muted-foreground">{crypto.name}</span>
                   </Button>
                 ))}
@@ -262,7 +317,7 @@ export function CryptoPaymentModal({
                   </div>
                 </div>
                 <div className="bg-[#1e293b]/50 rounded-lg p-4 border border-[#334155]">
-                  <p className="text-primary text-xs mb-1">Amount ({selectedCrypto})</p>
+                  <p className="text-primary text-xs mb-1">Amount ({selectedLabel})</p>
                   <div className="flex items-center gap-2">
                     <span className="text-white text-lg font-bold font-mono">
                       {cryptoAmount || '...'} 
@@ -320,36 +375,25 @@ export function CryptoPaymentModal({
                 </div>
                 
                 <p className="font-mono text-white text-sm break-all text-center">{paymentAddress}</p>
-                
-                <div className="flex items-center justify-between mt-4 pt-4 border-t border-[#334155]">
-                  <div>
-                    <p className="text-muted-foreground text-xs">Received:</p>
-                    <p className="text-primary font-mono">0.00000000</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-muted-foreground text-xs">Confirmations:</p>
-                    <p className="text-primary font-mono">0 / 1</p>
-                  </div>
-                </div>
               </div>
 
               {/* Status */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                  <span className="text-green-500 text-sm font-medium">Awaiting payment</span>
+                  <div className={`w-2 h-2 rounded-full animate-pulse ${paymentStatus === 'waiting' ? 'bg-green-500' : 'bg-primary'}`}></div>
+                  <span className={`text-sm font-medium ${paymentStatus === 'waiting' ? 'text-green-500' : 'text-primary'}`}>
+                    {STATUS_LABELS[paymentStatus] || 'Awaiting payment'}
+                  </span>
                 </div>
-                <span className="text-muted-foreground text-xs">Powered by NoKYCPay.me</span>
+                <span className="text-muted-foreground text-xs">Powered by NOWPayments</span>
               </div>
+
+              <p className="text-xs text-muted-foreground text-center">
+                This page updates automatically once your payment is detected on the network. No need to confirm manually.
+              </p>
 
               {/* Actions */}
               <div className="space-y-3 pt-2">
-                <Button
-                  className="w-full btn-gold"
-                  onClick={handleConfirmPayment}
-                >
-                  I've Sent the Payment
-                </Button>
                 <Button
                   variant="ghost"
                   className="w-full text-muted-foreground hover:text-white"

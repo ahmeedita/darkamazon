@@ -63,8 +63,12 @@ export type Database = {
           id: string
           items: Json
           order_id: string
+          pay_amount: number | null
           payment_address: string | null
           payment_currency: string | null
+          payment_id: string | null
+          payment_provider: string | null
+          payment_status: string | null
           recipient_email: string | null
           status: string
           total: number
@@ -77,8 +81,12 @@ export type Database = {
           id?: string
           items?: Json
           order_id: string
+          pay_amount?: number | null
           payment_address?: string | null
           payment_currency?: string | null
+          payment_id?: string | null
+          payment_provider?: string | null
+          payment_status?: string | null
           recipient_email?: string | null
           status?: string
           total: number
@@ -91,8 +99,12 @@ export type Database = {
           id?: string
           items?: Json
           order_id?: string
+          pay_amount?: number | null
           payment_address?: string | null
           payment_currency?: string | null
+          payment_id?: string | null
+          payment_provider?: string | null
+          payment_status?: string | null
           recipient_email?: string | null
           status?: string
           total?: number
