@@ -135,26 +135,12 @@ serve(async (req: Request): Promise<Response> => {
       console.error("Error fetching crypto price");
     }
 
-    const webhookPayload = JSON.stringify({
-      order_id: orderId,
-      amount,
-      delivery_email: deliveryEmail ?? null,
-      recipient_email: recipientEmail ?? null,
-    });
-
-    if (webhookPayload.length > 500) {
-      return new Response(
-        JSON.stringify({ error: "Payment metadata is too long" }),
-        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
-    }
-
     console.log(`Calling NoKYCPay API for ${cryptoSymbol} payment...`);
-    
+
+    // Free plan does not use webhooks — send only the required fields.
     const requestBody = {
       crypto_currency: cryptoSymbol,
       forward_address: forwardAddress,
-      webhook_payload: webhookPayload,
       api_key: apiKey,
     };
     
@@ -218,9 +204,10 @@ serve(async (req: Request): Promise<Response> => {
       { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
   } catch (error: unknown) {
-    console.error(`Payment creation failed: ${error instanceof Error ? error.message : String(error)}`);
+    const detail = error instanceof Error ? error.message : String(error);
+    console.error(`Payment creation failed: ${detail}`);
     return new Response(
-      JSON.stringify({ error: "Payment processing failed" }),
+      JSON.stringify({ error: `Payment processing failed: ${detail}` }),
       { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
   }
