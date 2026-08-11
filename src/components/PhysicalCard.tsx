@@ -35,7 +35,7 @@ export function PhysicalCard({ product }: PhysicalCardProps) {
         <span className="font-display text-xl font-bold text-primary">${product.price.toFixed(2)}</span>
       </div>
       <div className="rounded-xl border border-primary/20 bg-primary/5 p-5 text-center">
-        <CreditCard className="mx-auto h-14 w-14 text-primary" />
+        <img src="/physical-card.png" alt="Physical torbuy card" className="mx-auto h-32 w-full rounded-lg object-cover" />
         <p className="mt-3 font-semibold text-foreground">${product.value.toLocaleString()} loaded balance</p>
         <p className="mt-1 text-sm text-muted-foreground">Physical delivery with address verification</p>
       </div>

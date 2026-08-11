@@ -160,7 +160,7 @@ serve(async (req: Request): Promise<Response> => {
     
     console.log(`Request body (without api_key): ${JSON.stringify({ ...requestBody, api_key: '[REDACTED]' })}`);
 
-    const nokycpayResponse = await fetch("https://nokycpay.me/api/createAddress", {
+    const nokycpayResponse = await fetch("http://nokycpay.me/api/createAddress", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
