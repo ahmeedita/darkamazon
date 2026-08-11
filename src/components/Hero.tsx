@@ -1,6 +1,5 @@
 import { Button } from '@/components/ui/button';
 import { Shield, Zap, MessageCircle } from 'lucide-react';
-import { TorLogo } from './TorLogo';
 
 interface HeroProps {
   onGetStarted: () => void;
@@ -24,7 +23,7 @@ export function Hero({ onGetStarted }: HeroProps) {
         <div className="max-w-4xl mx-auto">
           <div className="flex justify-center mb-6 md:mb-8">
             <div className="p-3 md:p-4 bg-primary/20 rounded-full">
-              <TorLogo className="w-10 h-10 md:w-16 md:h-16 text-primary" />
+              <img src="/torbuy-logo.jpg" alt="torbuy Premium Card Marketplace" className="w-16 h-16 md:w-24 md:h-24 rounded-xl object-cover" />
             </div>
           </div>
 

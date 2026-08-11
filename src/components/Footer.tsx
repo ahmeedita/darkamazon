@@ -1,7 +1,6 @@
 import { MessageCircle, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { TorLogo } from './TorLogo';
 import { BitcoinLogo, EthereumLogo, LitecoinLogo, MoneroLogo } from './BrandLogos';
 
 export function Footer() {
@@ -23,7 +22,7 @@ export function Footer() {
           {/* Brand Section */}
           <div className="md:col-span-2">
             <div className="flex items-center space-x-2 mb-4">
-              <TorLogo className="w-6 h-6 md:w-8 md:h-8 text-primary" />
+              <img src="/torbuy-logo.jpg" alt="torbuy Premium Card Marketplace" className="w-8 h-8 md:w-10 md:h-10 rounded-md object-cover" />
               <div>
                 <h3 className="font-display text-xl md:text-2xl font-bold text-primary">
                   torbuy
