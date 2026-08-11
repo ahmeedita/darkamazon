@@ -27,12 +27,11 @@ export function Cart() {
   const needsRecipientProfile = transferProviders.some(provider => ['Western', 'MoneyGram'].includes(provider));
   const needsCashTag = transferProviders.includes('Cash');
   const needsBinanceUid = transferProviders.includes('Binance');
-  const hasPhysicalCards = items.some(item => item.type === 'card');
-
-  // Check if cart has transfer items and non-transfer items
+  // Check if cart has transfer items and digital or physical delivery items
   const hasTransferItems = items.some(item => item.type === 'transfer');
-  const hasNonTransferItems = items.some(item => item.type !== 'transfer');
-  const onlyTransferItems = hasTransferItems && !hasNonTransferItems;
+  const hasDigitalDeliveryItems = items.some(item => item.type === 'card' || item.type === 'giftcard');
+  const hasPhysicalCards = items.some(item => item.type === 'physical');
+  const onlyTransferItems = hasTransferItems && !hasDigitalDeliveryItems && !hasPhysicalCards;
 
   const handleCheckout = () => {
     if (items.length === 0) {
@@ -168,6 +167,7 @@ export function Cart() {
                           size="icon"
                           className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
                           onClick={() => removeItem(item.id)}
+                          aria-label={`Remove ${item.name} from cart`}
                         >
                           <X className="w-4 h-4" />
                         </Button>
@@ -178,11 +178,11 @@ export function Cart() {
 
                 <div className="border-t border-border pt-4 mt-4 space-y-4">
                   {/* Delivery Email Input - only show if there are non-transfer items */}
-                  {!onlyTransferItems && (
+                  {hasDigitalDeliveryItems && (
                     <div className="space-y-2">
                       <Label htmlFor="delivery-email" className="text-sm text-foreground flex items-center gap-2">
                         <Mail className="w-4 h-4 text-primary" />
-                        Delivery Email
+                        Digital Delivery Email
                       </Label>
                       <Input
                         id="delivery-email"
@@ -263,7 +263,7 @@ export function Cart() {
         total={currentOrderTotal}
         orderId={currentOrderId}
         onPaymentInitiated={handlePaymentInitiated}
-        deliveryEmail={onlyTransferItems ? undefined : deliveryEmail}
+        deliveryEmail={hasDigitalDeliveryItems ? deliveryEmail : undefined}
         recipientEmail={hasTransferItems ? recipientEmail : undefined}
       />
     </>

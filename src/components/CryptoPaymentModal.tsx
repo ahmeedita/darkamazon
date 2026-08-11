@@ -13,7 +13,7 @@ interface CryptoPaymentModalProps {
   total: number;
   orderId: string;
   onPaymentInitiated: () => void;
-  deliveryEmail: string;
+  deliveryEmail?: string;
   recipientEmail?: string;
   initialCrypto?: string;
   initialAddress?: string;
@@ -105,10 +105,10 @@ export function CryptoPaymentModal({
       }
 
       const { data, error } = await supabase.functions.invoke('create-crypto-payment', {
-        body: { symbol, orderId, amount: total, deliveryEmail, recipientEmail },
+        body: { symbol: symbol.toLowerCase(), orderId, amount: total, deliveryEmail, recipientEmail },
       });
 
-      if (error) throw error;
+      if (error) throw new Error(error.message || 'Payment service request failed');
 
       if (data?.paymentAddress) {
         setPaymentAddress(data.paymentAddress);

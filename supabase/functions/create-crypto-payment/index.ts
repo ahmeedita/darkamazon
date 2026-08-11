@@ -137,10 +137,17 @@ serve(async (req: Request): Promise<Response> => {
 
     const webhookPayload = JSON.stringify({
       order_id: orderId,
-      amount: amount,
-      delivery_email: deliveryEmail,
-      recipient_email: recipientEmail,
+      amount,
+      delivery_email: deliveryEmail ?? null,
+      recipient_email: recipientEmail ?? null,
     });
+
+    if (webhookPayload.length > 500) {
+      return new Response(
+        JSON.stringify({ error: "Payment metadata is too long" }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
 
     console.log(`Calling NoKYCPay API for ${cryptoSymbol} payment...`);
     
@@ -166,22 +173,23 @@ serve(async (req: Request): Promise<Response> => {
     console.log(`NoKYCPay response status: ${nokycpayResponse.status}`);
     console.log(`NoKYCPay response body: ${responseText}`);
 
-    if (!nokycpayResponse.ok) {
-      console.error(`Payment API error: ${nokycpayResponse.status} - ${responseText}`);
-      return new Response(
-        JSON.stringify({ error: "Failed to create payment address", details: responseText }),
-        { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
-    }
-
-    let nokycpayData;
+    let nokycpayData: Record<string, unknown>;
     try {
       nokycpayData = JSON.parse(responseText);
-    } catch (parseError) {
+    } catch {
       console.error(`Failed to parse NoKYCPay response: ${responseText}`);
       return new Response(
         JSON.stringify({ error: "Invalid response from payment service" }),
-        { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        { status: 502, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    if (!nokycpayResponse.ok || typeof nokycpayData.generated_address !== 'string') {
+      const message = typeof nokycpayData.message === 'string' ? nokycpayData.message : 'Failed to create payment address';
+      console.error(`Payment API error: ${nokycpayResponse.status} - ${message}`);
+      return new Response(
+        JSON.stringify({ error: message }),
+        { status: 502, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
     

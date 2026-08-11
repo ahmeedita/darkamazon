@@ -86,7 +86,7 @@ export function Features() {
               <div className="text-center p-4 rounded-lg bg-success-high/10 border border-success-high/30">
                 <div className="text-3xl font-bold text-success-high mb-2">98%</div>
                 <div className="font-semibold text-foreground mb-1">Premium Tier</div>
-                <div className="text-success-high font-bold text-xl mb-3">$50</div>
+                <div className="text-success-high font-bold text-xl mb-3">$99</div>
                 <ul className="text-sm text-muted-foreground space-y-1 text-left">
                   <li>• Highest success rate</li>
                   <li>• Premium bank cards</li>
@@ -97,7 +97,7 @@ export function Features() {
               <div className="text-center p-4 rounded-lg bg-success-medium/10 border border-success-medium/30">
                 <div className="text-3xl font-bold text-success-medium mb-2">85%</div>
                 <div className="font-semibold text-foreground mb-1">Standard Tier</div>
-                <div className="text-success-medium font-bold text-xl mb-3">$40</div>
+                <div className="text-success-medium font-bold text-xl mb-3">$74</div>
                 <ul className="text-sm text-muted-foreground space-y-1 text-left">
                   <li>• Reliable success rate</li>
                   <li>• Quality bank cards</li>
@@ -108,7 +108,7 @@ export function Features() {
               <div className="text-center p-4 rounded-lg bg-success-low/10 border border-success-low/30">
                 <div className="text-3xl font-bold text-success-low mb-2">70%</div>
                 <div className="font-semibold text-foreground mb-1">Basic Tier</div>
-                <div className="text-success-low font-bold text-xl mb-3">$29.99</div>
+                <div className="text-success-low font-bold text-xl mb-3">$50</div>
                 <ul className="text-sm text-muted-foreground space-y-1 text-left">
                   <li>• Entry-level success rate</li>
                   <li>• Basic bank cards</li>
