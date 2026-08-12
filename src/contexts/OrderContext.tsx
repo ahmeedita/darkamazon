@@ -75,26 +75,68 @@ export function OrderProvider({ children }: { children: ReactNode }) {
     loadOrders();
   }, [profile?.id]);
 
-  // Check for expired orders locally (database handles this via cron, but we update UI immediately)
+  // Cancel expired pending orders: update the UI immediately AND persist the
+  // cancellation to the database so it survives a page refresh.
   useEffect(() => {
-    const checkExpiredOrders = () => {
+    let cancelled = false;
+
+    const checkExpiredOrders = async () => {
       const now = Date.now();
-      setOrders(prev => {
-        const updated = prev.map(order => {
-          if (order.status === 'pending' && order.expiresAt <= now) {
-            releaseCards(order.id);
-            return { ...order, status: 'canceled' as const };
+      const expired = orders.filter(
+        order => order.status === 'pending' && order.expiresAt <= now
+      );
+      if (expired.length === 0) return;
+
+      // Release any reserved cards and flip local status right away.
+      expired.forEach(order => releaseCards(order.id));
+      setOrders(prev =>
+        prev.map(order =>
+          order.status === 'pending' && order.expiresAt <= now
+            ? { ...order, status: 'canceled' as const }
+            : order
+        )
+      );
+
+      // Persist to the database so a refresh doesn't resurrect it as pending.
+      if (profile?.id) {
+        for (const order of expired) {
+          const { error } = await supabase
+            .from('orders')
+            .update({ status: 'canceled' })
+            .eq('order_id', order.id)
+            .eq('user_id', profile.id)
+            .eq('status', 'pending');
+          if (error) {
+            console.error('Error canceling expired order:', error);
           }
-          return order;
-        });
-        return updated;
-      });
+        }
+      }
     };
 
+    // Run right away (handles orders that expired while the page was closed),
+    // then poll every second so cancellation feels instant.
     checkExpiredOrders();
-    const interval = setInterval(checkExpiredOrders, 60000);
-    return () => clearInterval(interval);
-  }, []);
+    const interval = setInterval(() => {
+      if (!cancelled) checkExpiredOrders();
+    }, 1000);
+
+    // Also fire a precise timeout at each pending order's exact expiry moment,
+    // so it cancels the instant the timer hits zero without waiting for a poll.
+    const now = Date.now();
+    const timeouts = orders
+      .filter(order => order.status === 'pending' && order.expiresAt > now)
+      .map(order =>
+        setTimeout(() => {
+          if (!cancelled) checkExpiredOrders();
+        }, order.expiresAt - now + 50)
+      );
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+      timeouts.forEach(clearTimeout);
+    };
+  }, [orders, profile?.id]);
 
   const addOrder = async (
     items: CartItem[], 
