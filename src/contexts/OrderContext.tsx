@@ -78,6 +78,8 @@ export function OrderProvider({ children }: { children: ReactNode }) {
   // Cancel expired pending orders: update the UI immediately AND persist the
   // cancellation to the database so it survives a page refresh.
   useEffect(() => {
+    let cancelled = false;
+
     const checkExpiredOrders = async () => {
       const now = Date.now();
       const expired = orders.filter(
@@ -111,9 +113,29 @@ export function OrderProvider({ children }: { children: ReactNode }) {
       }
     };
 
+    // Run right away (handles orders that expired while the page was closed),
+    // then poll every second so cancellation feels instant.
     checkExpiredOrders();
-    const interval = setInterval(checkExpiredOrders, 15000);
-    return () => clearInterval(interval);
+    const interval = setInterval(() => {
+      if (!cancelled) checkExpiredOrders();
+    }, 1000);
+
+    // Also fire a precise timeout at each pending order's exact expiry moment,
+    // so it cancels the instant the timer hits zero without waiting for a poll.
+    const now = Date.now();
+    const timeouts = orders
+      .filter(order => order.status === 'pending' && order.expiresAt > now)
+      .map(order =>
+        setTimeout(() => {
+          if (!cancelled) checkExpiredOrders();
+        }, order.expiresAt - now + 50)
+      );
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+      timeouts.forEach(clearTimeout);
+    };
   }, [orders, profile?.id]);
 
   const addOrder = async (
