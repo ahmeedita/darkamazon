@@ -32,6 +32,15 @@ export default function Orders() {
 
   const orders = getFilteredOrders(filter);
 
+  // An order that is still "pending" but past its expiry should be treated as
+  // canceled immediately in the UI, even before the context/DB catches up.
+  const getEffectiveStatus = (order: Order): Order['status'] => {
+    if (order.status === 'pending' && order.expiresAt <= Date.now()) {
+      return 'canceled';
+    }
+    return order.status;
+  };
+
   const getTimeRemaining = (expiresAt: number) => {
     const now = Date.now();
     const remaining = expiresAt - now;
@@ -163,21 +172,23 @@ export default function Orders() {
             </Card>
           ) : (
             <div className="space-y-4 max-w-3xl mx-auto">
-              {orders.map(order => (
+              {orders.map(order => {
+                const effectiveStatus = getEffectiveStatus(order);
+                return (
                 <Card 
                   key={order.id} 
-                  className={`card-premium p-6 ${order.status === 'pending' ? 'cursor-pointer hover:border-primary/50 transition-colors' : ''}`}
-                  onClick={() => order.status === 'pending' && handleResumePayment(order)}
+                  className={`card-premium p-6 ${effectiveStatus === 'pending' ? 'cursor-pointer hover:border-primary/50 transition-colors' : ''}`}
+                  onClick={() => effectiveStatus === 'pending' && handleResumePayment(order)}
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center space-x-3">
-                      {getStatusIcon(order.status)}
+                      {getStatusIcon(effectiveStatus)}
                       <div>
                         <p className="text-sm text-muted-foreground">Order ID</p>
                         <p className="font-mono text-sm text-foreground">{order.id.slice(0, 20)}...</p>
                       </div>
                     </div>
-                    {getStatusBadge(order.status)}
+                    {getStatusBadge(effectiveStatus)}
                   </div>
 
                   <div className="border-t border-border pt-4 mb-4">
@@ -202,7 +213,7 @@ export default function Orders() {
                       </p>
                     </div>
                     
-                    {order.status === 'pending' && (
+                    {effectiveStatus === 'pending' && (
                       <div className="text-right">
                         <div className="flex items-center gap-2 mb-1">
                           <Button 
@@ -238,7 +249,7 @@ export default function Orders() {
                       </div>
                     )}
 
-                    {order.status === 'completed' && (
+                    {effectiveStatus === 'completed' && (
                       <div className="text-right">
                         <p className="text-sm text-green-500 font-medium">Payment Confirmed</p>
                         <p className="text-xs text-muted-foreground">
@@ -247,7 +258,7 @@ export default function Orders() {
                       </div>
                     )}
 
-                    {order.status === 'canceled' && (
+                    {effectiveStatus === 'canceled' && (
                       <div className="text-right">
                         <p className="text-sm text-red-500 font-medium">Order Canceled</p>
                         <p className="text-xs text-muted-foreground">
@@ -257,7 +268,8 @@ export default function Orders() {
                     )}
                   </div>
                 </Card>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

@@ -75,26 +75,46 @@ export function OrderProvider({ children }: { children: ReactNode }) {
     loadOrders();
   }, [profile?.id]);
 
-  // Check for expired orders locally (database handles this via cron, but we update UI immediately)
+  // Cancel expired pending orders: update the UI immediately AND persist the
+  // cancellation to the database so it survives a page refresh.
   useEffect(() => {
-    const checkExpiredOrders = () => {
+    const checkExpiredOrders = async () => {
       const now = Date.now();
-      setOrders(prev => {
-        const updated = prev.map(order => {
-          if (order.status === 'pending' && order.expiresAt <= now) {
-            releaseCards(order.id);
-            return { ...order, status: 'canceled' as const };
+      const expired = orders.filter(
+        order => order.status === 'pending' && order.expiresAt <= now
+      );
+      if (expired.length === 0) return;
+
+      // Release any reserved cards and flip local status right away.
+      expired.forEach(order => releaseCards(order.id));
+      setOrders(prev =>
+        prev.map(order =>
+          order.status === 'pending' && order.expiresAt <= now
+            ? { ...order, status: 'canceled' as const }
+            : order
+        )
+      );
+
+      // Persist to the database so a refresh doesn't resurrect it as pending.
+      if (profile?.id) {
+        for (const order of expired) {
+          const { error } = await supabase
+            .from('orders')
+            .update({ status: 'canceled' })
+            .eq('order_id', order.id)
+            .eq('user_id', profile.id)
+            .eq('status', 'pending');
+          if (error) {
+            console.error('Error canceling expired order:', error);
           }
-          return order;
-        });
-        return updated;
-      });
+        }
+      }
     };
 
     checkExpiredOrders();
-    const interval = setInterval(checkExpiredOrders, 60000);
+    const interval = setInterval(checkExpiredOrders, 15000);
     return () => clearInterval(interval);
-  }, []);
+  }, [orders, profile?.id]);
 
   const addOrder = async (
     items: CartItem[], 
